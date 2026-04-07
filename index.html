@@ -13,38 +13,33 @@
         .container { max-width: 500px; margin: auto; }
         h1 { font-size: 1.4rem; color: var(--primary); margin: 15px 0 25px; text-align: center; font-weight: 800; letter-spacing: 1px; }
         
-        /* 卡片優化 */
         .card { background: white; border-radius: 20px; padding: 22px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); }
         h2 { font-size: 1rem; margin: 0 0 16px 0; color: #444; font-weight: 700; display: flex; align-items: center; }
         h2::before { content: ""; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; margin-right: 8px; }
 
         label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #888; text-transform: uppercase; }
         
-        /* 輸入框優化 */
         input, select, textarea { 
             width: 100%; padding: 12px 14px; border: 1.5px solid #f0f0f0; border-radius: 12px; 
             font-size: 16px; background: #fafafa; transition: all 0.2s ease; color: #222;
         }
         input:focus, select:focus { border-color: var(--blue); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
-        input::placeholder { color: #ccc; }
-
+        
         .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .form-group { margin-bottom: 12px; }
 
-        /* 按鈕優化 */
         .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
         .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-primary { background: var(--blue); color: white; margin-top: 8px; }
         .btn-secondary { background: var(--secondary); color: white; }
         
-        /* 列表項優化 */
         .food-item { border-bottom: 1px solid #f5f5f5; padding: 16px 4px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
         .food-item:last-child { border-bottom: none; }
         .food-info { flex: 1; min-width: 0; cursor: pointer; }
         .food-title-row { display: flex; align-items: center; margin-bottom: 4px; }
         .food-info b { font-size: 1rem; color: #1a1a1a; }
         
-        .status-badge { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; margin-left: 8px; flex-shrink: 0; letter-spacing: 0.5px; }
+        .status-badge { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; margin-left: 8px; flex-shrink: 0; }
         .bg-eating { background-color: #e8f5e9; color: #2e7d32; }
         .bg-stock { background-color: #e3f2fd; color: #1976d2; }
         .bg-done { background-color: #f5f5f5; color: #999; }
@@ -55,23 +50,25 @@
         
         .food-meta { text-align: right; flex-shrink: 0; padding-top: 2px; }
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
-        .unit-price { font-size: 10px; color: #bbb; font-weight: 500; }
+        .unit-price { font-size: 10px; color: #bbb; }
         
-        /* 彈窗 */
+        .management-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; margin-bottom: 30px; }
+        .tool-btn { background:#fff; color:#666; font-size:11px; padding: 10px 5px; border:1px solid #eee; border-radius:12px; font-weight:600; }
+
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
-        .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; }
     </style>
 </head>
 <body>
 
 <div id="memoModal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-top:0; font-size:1.2rem;">📝 編輯心得</h3>
+        <h3 id="modalTitle" style="margin-top:0;">📝 編輯心得</h3>
         <p id="modalSubTitle" style="font-size:0.9rem; color:#888; margin-bottom:15px;"></p>
-        <textarea id="memoInput" rows="4" placeholder="輸入餵食反應、毛孩喜好..."></textarea>
+        <textarea id="memoInput" rows="4" placeholder="輸入餵食反應..."></textarea>
         <button class="btn btn-primary" style="margin-top:20px;" onclick="saveMemo()">儲存心得</button>
         <button class="btn" style="background:#eee; color:#666; margin-top:10px;" onclick="closeModal()">取消</button>
-        <button class="btn" style="background:none; color:#ff5252; font-size:13px; margin-top:15px; font-weight:600;" id="deleteBtn">🗑 刪除此筆紀錄</button>
+        <button class="btn" style="background:none; color:#ff5252; font-size:13px; margin-top:15px;" id="deleteBtn">🗑 刪除此筆紀錄</button>
     </div>
 </div>
 
@@ -93,7 +90,7 @@
             </div>
             <div style="flex: 1;"><label>價格</label><input type="number" id="price" placeholder="NT$"></div>
         </div>
-        <div class="form-group" style="margin-top: 4px;">
+        <div class="form-group">
             <label>有效期限 (YYYY/MM/DD)</label>
             <input type="text" id="expiry" inputmode="numeric" placeholder="2026/12/31" onkeyup="formatDate(this)">
         </div>
@@ -102,15 +99,9 @@
 
     <div class="card">
         <h2>開封管理</h2>
-        <div class="form-group">
-            <label>待開封清單</label>
-            <select id="stockSelect"></select>
-        </div>
-        <div class="form-group">
-            <label>開封日期</label>
-            <input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
-        </div>
-        <button class="btn btn-secondary" style="margin-top:8px;" onclick="markAsOpen()">確認開封</button>
+        <div class="form-group"><label>待開封清單</label><select id="stockSelect"></select></div>
+        <div class="form-group"><label>開封日期</label><input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)"></div>
+        <button class="btn btn-secondary" onclick="markAsOpen()">確認開封</button>
     </div>
 
     <div class="card">
@@ -120,9 +111,10 @@
         <div id="archiveSection" style="display:none; margin-top:15px; border-top:1px dashed #eee;"></div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 30px;">
-        <button class="btn" style="background:#fff; color:#888; font-size:12px; flex:1; border:1px solid #eee;" onclick="exportData()">💾 導出備份</button>
-        <button class="btn" style="background:#fff; color:#888; font-size:12px; flex:1; border:1px solid #eee;" onclick="importData()">🔄 還原數據</button>
+    <div class="management-tools">
+        <button class="btn tool-btn" onclick="exportCSV()">📊 導出 CSV</button>
+        <button class="btn tool-btn" onclick="exportData()">💾 導出 JSON</button>
+        <button class="btn tool-btn" onclick="importData()">🔄 還原數據</button>
     </div>
 </div>
 
@@ -156,7 +148,6 @@
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
-
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length 
             ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('')
@@ -182,42 +173,29 @@
                 const days = Math.round((i.weightKg * 1000) / dailyG);
                 const eatingItem = db.find(item => item.status === '食用中');
                 let baseDate = new Date();
-                if (eatingItem && eatingItem.finishDate) {
-                    baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
-                }
+                if (eatingItem && eatingItem.finishDate) baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
                 const estFinish = new Date(baseDate);
                 estFinish.setDate(estFinish.getDate() + days);
                 const estStr = `${estFinish.getFullYear()}/${String(estFinish.getMonth()+1).padStart(2,'0')}/${String(estFinish.getDate()).padStart(2,'0')}`;
-                const expDate = new Date(i.expiry.replace(/\//g, '-'));
-                const isExpiredRisk = estFinish > expDate;
-                const alertStyle = isExpiredRisk ? 'color:#ff5252; font-weight:700;' : 'color:#d2691e;';
-
-                dateText = `
-                    <div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
-                    <div style="font-size:10px; ${alertStyle} margin-top:2px;">
-                        ${isExpiredRisk ? '⚠️ ' : '💡 '}預計吃 ${days} 天 (約 ${estStr} 完食)
-                    </div>`;
+                const isExpiredRisk = estFinish > new Date(i.expiry.replace(/\//g, '-'));
+                dateText = `<div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
+                            <div style="font-size:10px; ${isExpiredRisk?'color:#ff5252; font-weight:700;':'color:#d2691e;'} margin-top:2px;">
+                                ${isExpiredRisk?'⚠️ ':'💡 '}預計吃 ${days} 天 (約 ${estStr} 完食)</div>`;
             } else if (i.status === '食用中') {
-                dateText = `
-                    <div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
-                    <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;">🍴 預計 ${i.finishDate || '...'} 吃完</div>`;
+                dateText = `<div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
+                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;">🍴 預計 ${i.finishDate || '...'} 吃完</div>`;
             } else {
                 dateText = `<div style="font-size:10px; color:#bbb; margin-top:6px;">🏁 ${i.finishDate} 完食</div>`;
             }
 
-            return `
-                <div class="food-item ${isAvoid ? 'avoid-buy' : ''}" onclick="openMemo(${i.id})">
-                    <div class="food-info">
-                        <div class="food-title-row"><b>${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                        <span class="sub-text">${i.flavor} (${i.weightKg}kg)</span>
-                        ${dateText}
-                        ${i.memo ? `<div class="memo-text">💬 ${i.memo}</div>` : ''}
-                    </div>
-                    <div class="food-meta">
-                        <div class="price-tag">$${i.price || '-'}</div>
-                        <div class="unit-price">$${up}/g</div>
-                    </div>
-                </div>`;
+            return `<div class="food-item ${isAvoid ? 'avoid-buy' : ''}" onclick="openMemo(${i.id})">
+                        <div class="food-info">
+                            <div class="food-title-row"><b>${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
+                            <span class="sub-text">${i.flavor} (${i.weightKg}kg)</span>
+                            ${dateText}${i.memo ? `<div class="memo-text">💬 ${i.memo}</div>` : ''}
+                        </div>
+                        <div class="food-meta"><div class="price-tag">$${i.price || '-'}</div><div class="unit-price">$${up}/g</div></div>
+                    </div>`;
         };
 
         document.getElementById('recentList').innerHTML = [...active, ...recentDone].map(renderItem).join('');
@@ -232,7 +210,7 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || expiry.length < 10) return alert("請完整填寫品牌、重量與正確日期格式");
+        if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊填寫不完整");
         const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor, weightKg: parseFloat(weightKg), price: price||0, expiry, status: '庫存', memo: "", openDate: null, finishDate: null });
         saveAndRender();
@@ -241,9 +219,8 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("目前沒有庫存項目");
-        let openStr = document.getElementById('openDate').value;
-        if(!openStr) openStr = getTodayStr();
+        if(!id) return alert("沒有項目");
+        let openStr = document.getElementById('openDate').value || getTodayStr();
         const dailyG = getDailyUsage();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
@@ -262,10 +239,8 @@
         document.getElementById('modalTitle').innerText = item.brand;
         document.getElementById('modalSubTitle').innerText = item.flavor + " (" + item.weightKg + "kg)";
         document.getElementById('memoInput').value = item.memo || "";
-        document.getElementById('memoModal').style.display = 'flex';
-        document.getElementById('deleteBtn').onclick = function() {
-            if(confirm('確定要刪除這筆紀錄？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); }
-        };
+        document.getElementById('modalToClose') || (document.getElementById('memoModal').style.display = 'flex');
+        document.getElementById('deleteBtn').onclick = function() { if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); } };
     }
 
     function saveMemo() {
@@ -283,13 +258,29 @@
         document.getElementById('toggleBtn').innerText = isHidden ? '▲ 收起' : '▼ 查看舊紀錄';
     }
 
-    function exportData() {
-        navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("數據已複製到剪貼簿"));
+    function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("JSON數據已複製")); }
+    function importData() {
+        const input = prompt("貼上 JSON：");
+        if (input) { try { db = JSON.parse(input); saveAndRender(); alert("還原成功"); } catch (e) { alert("格式錯誤"); } }
     }
 
-    function importData() {
-        const input = prompt("請貼上備份數據 (JSON)：");
-        if (input) { try { db = JSON.parse(input); saveAndRender(); alert("還原成功！"); } catch (e) { alert("數據格式錯誤"); } }
+    function exportCSV() {
+        if (db.length === 0) return alert("目前沒有數據可以導出");
+        let csvContent = "\ufeff狀態,品牌,品項,重量(kg),價格,單價(g),有效期限,開封日期,完食日期,備註\n";
+        db.forEach(i => {
+            const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
+            const row = [i.status, i.brand, i.flavor, i.weightKg, i.price, up, i.expiry, i.openDate || '-', i.finishDate || '-', i.memo || '-'];
+            csvContent += row.map(val => `"${val}"`).join(",") + "\n";
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `飼料管理紀錄_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     document.getElementById('openDate').value = getTodayStr();
