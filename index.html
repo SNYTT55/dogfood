@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Feed Management Pro</title>
+    <title>飼料智慧管家 Pro</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff;
@@ -20,7 +20,7 @@
         /* 導覽列 */
         .nav-tabs { display: flex; background: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .v2-active .nav-tabs { background: #1a1a1a; border-bottom: 1px solid var(--border-v2); }
-        .tab-btn { flex: 1; text-align: center; padding: 15px 0; letter-spacing: 2px; font-size: 0.9rem; font-weight: 800; color: #bbb; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn { flex: 1; text-align: center; padding: 15px 0; font-size: 0.9rem; font-weight: 800; color: #bbb; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .tab-btn.ai-active { color: var(--ai-yellow); border-bottom-color: var(--ai-yellow); }
 
@@ -35,77 +35,59 @@
         .tag-sticker { 
             position: absolute; top: 0; left: 0; 
             padding: 4px 12px; font-size: 10px; font-weight: 900; 
-            border-bottom-right-radius: 12px; text-transform: uppercase; 
+            border-bottom-right-radius: 12px; text-transform: uppercase; letter-spacing: 1px;
         }
 
-        /* 卡片共用結構 */
-        .v1-card, .v2-card { 
-            position: relative; padding: 38px 22px 22px !important; 
-            border-radius: 20px; margin-bottom: 20px; overflow: hidden; 
-        }
+        /* 卡片設計 */
+        .v1-card, .v2-card { position: relative; padding: 38px 22px 22px !important; border-radius: 20px; margin-bottom: 20px; overflow: hidden; }
         .v1-card { background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         .v1-tag { background: var(--primary); color: #fff; }
         .v2-card { background: var(--card-v2); border: 1px solid var(--border-v2); color: var(--text-v2); }
         .v2-tag { background: var(--ai-yellow); color: #000; }
 
-        /* 表單輸入框修正 (解決白色框問題) */
+        /* 輸入框修正 (V2 深色模式) */
         label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #888; }
-        input, select, textarea { 
-            width: 100%; padding: 12px 14px; border-radius: 12px; font-size: 16px; 
-            border: 1.5px solid #f0f0f0; background: #fafafa; color: #333; 
-            transition: all 0.2s;
-        }
-
-        /* V2 模式下強制變深色，文字變白 */
+        input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 12px; font-size: 16px; border: 1.5px solid #f0f0f0; background: #fafafa; color: #333; }
         .v2-active input, .v2-active select, .v2-active textarea { 
             background: rgba(255,255,255,0.05) !important; 
             border: 1px solid var(--border-v2) !important; 
             color: #fff !important; 
         }
 
-        /* 彈窗特規大框框 (還原與備忘錄專用) */
-        .modal-content textarea { 
-            min-height: 250px; 
-            font-family: 'Courier New', monospace; 
-            font-size: 14px; 
-            background: #fdfdfd; 
-            line-height: 1.6;
-        }
-        .v2-active .modal-content textarea {
-            background: rgba(0,0,0,0.2) !important;
-            color: var(--ai-yellow) !important;
-        }
+        /* 彈窗大框框特規 */
+        .modal-content textarea { min-height: 250px; font-family: 'Courier New', monospace; font-size: 14px; background: #fdfdfd; line-height: 1.6; }
+        .v2-active .modal-content { background: var(--card-v2); color: #fff; border: 1px solid var(--border-v2); }
+        .v2-active .modal-content textarea { background: rgba(0,0,0,0.2) !important; color: var(--ai-yellow) !important; }
 
-        /* 按鈕與清單 */
+        /* 按鈕與列表樣式 */
         .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
+        
         .food-item { border-bottom: 1px solid #f5f5f5; padding: 16px 4px; display: flex; justify-content: space-between; align-items: center; }
         .v2-active .food-item { border-bottom-color: var(--border-v2); }
-        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
+        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; height: 18px; }
         .bg-eating { background-color: #e8f5e9; color: #2e7d32; }
         .bg-stock { background-color: #e3f2fd; color: #1976d2; }
         .bg-done { background-color: rgba(255,255,255,0.05); color: #888; }
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
-        
-        /* 儀表板 */
+
+        /* AI 儀表板 */
         .dashboard-grid { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 10px; }
         .refill-calculator { background: rgba(251, 192, 45, 0.05); border-radius: 15px; padding: 15px; margin-top: 15px; border: 1px dashed rgba(251, 192, 45, 0.3); }
-        .management-tools { display: flex; justify-content: center; gap: 8px; }
         .tool-btn { flex: 1; text-align: center; padding: 10px; font-size: 11px; border-radius: 10px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); border: 1px solid var(--border-v2); font-weight: 700; cursor: pointer; }
-        
-        /* 彈窗 */
+
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:400px; color:#333; }
-        .v2-active .modal-content { background: var(--card-v2); border: 1px solid var(--border-v2); color: #fff; }
+        .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 15px; cursor: pointer; font-weight: 700; }
     </style>
 </head>
 <body id="main-body">
 
 <div id="memoModal"><div class="modal-content">
     <h3 id="modalTitle" style="margin-top:0;">編輯心得</h3>
-    <p id="modalSubTitle" style="font-size:0.8rem; color:#999; margin-bottom:5px;"></p>
-    <textarea id="memoInput" placeholder="在此貼上數據或輸入備忘錄..."></textarea>
+    <p id="modalSubTitle" style="font-size:0.8rem; color:#999; margin-bottom:8px;"></p>
+    <textarea id="memoInput"></textarea>
     <button id="modalSaveBtn" class="btn btn-primary" style="margin-top:15px;" onclick="saveMemo()">儲存</button>
     <button class="btn" style="background:#eee; margin-top:8px; color:#333;" onclick="closeModal()">取消</button>
     <button id="deleteBtn" style="background:none; border:none; color:#ff5252; width:100%; margin-top:10px; font-size:12px; cursor:pointer;">🗑 刪除紀錄</button>
@@ -118,7 +100,7 @@
 
 <div class="container">
     <div id="page-v1" class="tab-page active">
-        <h1>INVENTORY LOG</h1>
+        <h1>🐾 飼料管理中心</h1>
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -135,7 +117,7 @@
 
         <div class="v1-card">
             <div class="tag-sticker v1-tag">Feeding Control</div>
-            <label>庫存清單</label><select id="stockSelect" style="margin-bottom:12px;"></select>
+            <label>待開封清單</label><select id="stockSelect" style="margin-bottom:12px;"></select>
             <label>開封日期</label><input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="markAsOpen()">確認開封</button>
         </div>
@@ -147,7 +129,7 @@
     </div>
 
     <div id="page-v2" class="tab-page">
-        <h1>CORE INTELLIGENCE</h1>
+        <h1>🤖 AI 智慧監測</h1>
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Storage Status</div>
             <div class="dashboard-grid">
@@ -185,7 +167,7 @@
 
         <div class="v2-card">
             <div class="tag-sticker v2-tag">System Tools</div>
-            <div class="management-tools">
+            <div class="management-tools" style="display: flex; gap: 8px;">
                 <div class="tool-btn" onclick="exportCSV()">📊 CSV</div>
                 <div class="tool-btn" onclick="exportData()">💾 JSON</div>
                 <div class="tool-btn" onclick="importData()">🔄 RESTORE</div>
@@ -233,21 +215,48 @@
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
+        const dailyG = getDailyUsage();
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}</option>`).join('') : '<option value="">目前無庫存</option>';
         
         const renderItem = (i) => {
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
+            
+            // 重要：日期邏輯回歸
+            let dateText = '';
+            if (i.status === '庫存') {
+                const days = Math.round((i.weightKg * 1000) / dailyG);
+                const eatingItem = db.find(item => item.status === '食用中');
+                let baseDate = new Date();
+                if (eatingItem && eatingItem.finishDate) baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
+                const estFinish = new Date(baseDate);
+                estFinish.setDate(estFinish.getDate() + days);
+                const estStr = `${estFinish.getFullYear()}/${String(estFinish.getMonth()+1).padStart(2,'0')}/${String(estFinish.getDate()).padStart(2,'0')}`;
+                const isExpiredRisk = estFinish > new Date(i.expiry.replace(/\//g, '-'));
+                dateText = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期限：${i.expiry}</div>
+                            <div style="font-size:10px; ${isExpiredRisk?'color:#ff5252; font-weight:700;':'color:#d2691e;'} margin-top:2px;">
+                                ${isExpiredRisk?'⚠️ ':'💡 '}預計吃 ${days} 天 (約 ${estStr} 完食)</div>`;
+            } else if (i.status === '食用中') {
+                dateText = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期限：${i.expiry}</div>
+                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;">🍴 預計於 ${i.finishDate} 以前吃完</div>`;
+            } else {
+                dateText = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁 於 ${i.finishDate} 已完食</div>`;
+            }
+
             return `<div class="food-item" onclick="openMemo(${i.id})">
-                <div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                <div style="font-size:0.85rem;color:#777;margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div></div>
+                <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
+                    <div style="font-size:0.85rem;color:#777;margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
+                    ${dateText}
+                </div>
                 <div style="text-align:right;"><div class="price-tag">$${i.price||'-'}</div><span style="font-size:10px;color:#bbb;">$${up}/g</span></div></div>`;
         };
 
         document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="color:#999;font-size:12px;text-align:center;padding:20px;">NO ACTIVE ITEMS</div>';
         const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')));
-        document.getElementById('archiveList').innerHTML = (isArchiveExpanded ? allDone : allDone.slice(0, 5)).map(renderItem).join('') + (allDone.length > 5 ? `<button class="btn" style="font-size:11px; margin-top:10px; background:rgba(255,255,255,0.05); color:#666;" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開'}</button>` : '');
+        const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
+        document.getElementById('archiveList').innerHTML = displayDone.map(renderItem).join('') + (allDone.length > 5 ? `<button class="expand-btn" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開其餘'}</button>` : '');
     }
 
     function addEntry() {
@@ -263,11 +272,15 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("請選擇庫存");
+        if(!id) return alert("請選擇項目");
         let openStr = document.getElementById('openDate').value || getTodayStr();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中'; db[idx].openDate = openStr;
+        const days = (db[idx].weightKg * 1000) / getDailyUsage();
+        const fDate = new Date(openStr.replace(/\//g, '-'));
+        fDate.setDate(fDate.getDate() + Math.round(days));
+        db[idx].finishDate = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
         saveAndRender();
     }
 
@@ -275,10 +288,11 @@
         currentEditId = id;
         const item = db.find(i => i.id == id);
         document.getElementById('modalTitle').innerText = item.brand;
-        document.getElementById('modalSubTitle').innerText = "編輯備忘錄：";
+        document.getElementById('modalSubTitle').innerText = item.flavor || "備忘錄";
         document.getElementById('memoInput').value = item.memo || "";
         document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('deleteBtn').style.display = 'block';
+        document.getElementById('modalSaveBtn').innerText = "儲存";
         document.getElementById('modalSaveBtn').onclick = saveMemo;
         document.getElementById('deleteBtn').onclick = function() { if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); } };
     }
@@ -288,19 +302,18 @@
 
     function importData() {
         document.getElementById('modalTitle').innerText = "數據還原";
-        document.getElementById('modalSubTitle').innerText = "請貼上 JSON 完整代碼：";
+        document.getElementById('modalSubTitle').innerText = "請貼上 JSON 代碼：";
         const memoBox = document.getElementById('memoInput');
         memoBox.value = "";
         document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('deleteBtn').style.display = 'none';
         const saveBtn = document.getElementById('modalSaveBtn');
-        saveBtn.innerText = "立即還原";
+        saveBtn.innerText = "確認還原";
         saveBtn.onclick = function() {
             try {
                 const data = JSON.parse(memoBox.value);
                 if(Array.isArray(data)) { db = data; saveAndRender(); closeModal(); alert("✅ 還原成功！"); }
             } catch(e) { alert("解析失敗！"); }
-            saveBtn.innerText = "儲存"; saveBtn.onclick = saveMemo;
         };
     }
 
@@ -321,17 +334,6 @@
         }
     }
 
-    function exportData() { 
-        navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("✅ JSON 已複製")); 
-    }
+    function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("✅ JSON 已複製")); }
     function exportCSV() {
         let csv = "\ufeff狀態,品牌,品項,重量(kg),價格,有效期限\n";
-        db.forEach(i => csv += `"${i.status}","${i.brand}","${i.flavor}","${i.weightKg}","${i.price}","${i.expiry}"\n`);
-        const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `records.csv`; link.click();
-    }
-
-    document.getElementById('openDate').value = getTodayStr();
-    saveAndRender();
-</script>
-</body>
-</html>
