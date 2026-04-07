@@ -120,7 +120,7 @@
             <div class="tag-sticker v2-tag">Refill Planner</div>
             <label>設定目標日期</label>
             <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center;">
-            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">輸入日期以計算缺口</div>
+            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">⏳⏳⏳</div>
         </div>
         <div class="v2-card"><div class="tag-sticker v2-tag">Archive</div><div id="archiveList"></div></div>
         <div class="v2-card">
@@ -198,14 +198,14 @@
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            let infoLine1 = `📅 有效期：${i.expiry}`;
+            let infoLine1 = `📅：${i.expiry}`;
             let infoLine2 = '';
 
             if (i.status === '庫存') {
                 const days = Math.round((i.weightKg * 1000) / dailyG);
-                infoLine2 = `💡 預計吃 ${days} 天 | 🏁 預計完食：${calculateFutureFinish(days)}`;
+                infoLine2 = `💡 預計可吃 ${days} 天 | 預計在${calculateFutureFinish(days)}吃完`;
             } else if (i.status === '食用中') {
-                infoLine2 = `🍴 剩餘約 ${currentWeight.toFixed(2)}kg | 🏁 預計完食：${i.finishDate}`;
+                infoLine2 = `🍴 剩餘約 ${currentWeight.toFixed(2)}kg | 預計在${i.finishDate}`吃完;
             } else {
                 infoLine2 = `🏁 完食日期：${i.finishDate}`;
             }
