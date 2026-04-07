@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 視覺優化版v2</title>
+    <title>Samy管家 - 最終視覺修正</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f8f9fa; --text: #333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -20,18 +20,21 @@
         .btn-secondary { background: var(--secondary); color: white; }
         .btn-import { background: #666; color: white; font-size: 14px; padding: 10px; }
 
-        /* --- ✨ 狀態標籤視覺優化 --- */
+        /* --- ✨ 狀態標籤 視覺完全修正 --- */
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-left: 5px; }
         
-        /* 食用中：深綠底、深綠框、白字 */
+        /* 食用中：深綠底、深綠框、純白字 */
         .bg-eating { 
-            background: #2e7d32; 
-            color: #ffffff; 
-            border: 2px solid #1b5e20; 
+            background-color: #2e7d32 !important; 
+            color: #ffffff !important; 
+            border: 2px solid #2e7d32 !important; 
         }
         
-        .bg-stock { background: #e3f2fd; color: #757575; border: 1px solid #bbdefb; }
-        .bg-done { background: #f5f5f5; color: #9e9e9e; border: 1px solid #e0e0e0; }
+        /* 庫存：藍色底灰字 */
+        .bg-stock { background-color: #e3f2fd; color: #757575; border: 1px solid #bbdefb; }
+        
+        /* 已吃完：灰底灰字 */
+        .bg-done { background-color: #f5f5f5; color: #9e9e9e; border: 1px solid #e0e0e0; }
 
         .food-item { border-bottom: 1px solid #f0f0f0; padding: 15px 0; display: flex; justify-content: space-between; align-items: flex-start; }
         .food-info b { display: block; font-size: 1rem; margin-bottom: 2px; }
@@ -59,10 +62,7 @@
 
     <div class="card">
         <h2>🍴 開封管理</h2>
-        <div class="form-group">
-            <label>選擇下一包 (顯示品牌與口味)</label>
-            <select id="stockSelect"></select>
-        </div>
+        <div class="form-group"><label>選擇下一包</label><select id="stockSelect"></select></div>
         <div class="form-group"><label>開封日期</label><input type="date" id="openDate"></div>
         <button class="btn btn-secondary" onclick="markAsOpen()">確認開封並開始推算</button>
         <div id="predictMsg" class="highlight-box" style="display: none;"></div>
@@ -121,9 +121,6 @@
         finishDate.setDate(finishDate.getDate() + days);
         db[idx].finishDate = finishDate.toISOString().split('T')[0];
         saveAndRender();
-        const msg = document.getElementById('predictMsg');
-        msg.style.display = 'block';
-        msg.innerHTML = `✨ <b>${db[idx].brand}</b> 已開封！預計完食日：<b>${db[idx].finishDate}</b>`;
     }
 
     function importData() {
@@ -131,14 +128,13 @@
         if(!input) return alert("請貼上代碼");
         try {
             const newData = JSON.parse(input);
-            if(confirm("確定匯入並覆蓋目前資料嗎？")) { db = newData; saveAndRender(); alert("匯入成功！"); }
+            if(confirm("確定匯入嗎？")) { db = newData; saveAndRender(); alert("匯入成功！"); }
         } catch(e) { alert("代碼格式不正確"); }
     }
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         
-        // --- 🔧 選單優化：增加「口味 (品項)」顯示 ---
         const select = document.getElementById('stockSelect');
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
         select.innerHTML = stocks.map(i => {
@@ -151,18 +147,22 @@
             const s = {'食用中': 3, '庫存': 2, '已吃完': 1};
             return s[b.status] - s[a.status] || b.id - a.id;
         });
-        list.innerHTML = displayData.map(i => `
-            <div class="food-item">
-                <div class="food-info">
-                    <b>${i.brand} <span class="status-badge ${i.status==='食用中'?'bg-eating':(i.status==='已吃完'?'bg-done':'bg-stock')}">${i.status}</span></b>
-                    <span>${i.flavor} (${i.weightKg}kg)</span>
+        
+        list.innerHTML = displayData.map(i => {
+            const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
+            return `
+                <div class="food-item">
+                    <div class="food-info">
+                        <b>${i.brand} <span class="status-badge ${statusClass}">${i.status}</span></b>
+                        <span>${i.flavor} (${i.weightKg}kg)</span>
+                    </div>
+                    <div class="food-meta">
+                        <div style="font-weight:bold; color:var(--primary);">$${i.price || '-'}</div>
+                        <div style="font-size:11px; color:#999;">${i.status==='庫存' ? i.expiry+' 到期' : (i.finishDate||'-')+' 完食'}</div>
+                    </div>
                 </div>
-                <div class="food-meta">
-                    <div style="font-weight:bold; color:var(--primary);">$${i.price || '-'}</div>
-                    <div style="font-size:11px; color:#999;">${i.status==='庫存' ? i.expiry+' 到期' : (i.finishDate||'-')+' 完食'}</div>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     function exportCSV() {
@@ -171,7 +171,7 @@
         const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "58食糧紀錄.csv";
+        link.download = "Samy食糧紀錄.csv";
         link.click();
     }
 
