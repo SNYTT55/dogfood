@@ -471,12 +471,12 @@ function updateAIRecommendation() {
             toolBar.id = 'modal-tools';
             toolBar.style = "display:flex; gap:10px; margin-top:10px; margin-bottom:10px;";
             toolBar.innerHTML = `
-                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; " onclick="document.getElementById('memoInput').value=''">一鍵清空</button>
-                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; " onclick="pasteToModal()">一鍵貼上</button>
+                <button class="btn" style="background:none; border:none; color:var(--ai-yellow); flex:1; font-size:13px; " onclick="document.getElementById('memoInput').value=''">一鍵清空</button>
+                <button class="btn" style="background:none; border:none; color:var(--ai-yellow); flex:1; font-size:13px; " onclick="pasteToModal()">一鍵貼上</button>
                 
             `;
             // 將這兩個按鈕插在輸入框下面
-            memoInput.parentNode.insertBefore(toolBar, modalSaveBtn);
+            modalSaveBtn.parentNode.appendChild(toolBar);
     
             // 6. 顯示彈窗
             document.getElementById('memoModal').style.display = 'flex';
