@@ -449,18 +449,29 @@ function updateAIRecommendation() {
     }
 
     function openRestoreModal() {
-        document.getElementById('modalTitle').innerText = "系統還原";
-        document.getElementById('modalSubTitle').innerText = "請貼上 JSON 備份數據";
-        document.getElementById('memoInput').value = "";
-        document.getElementById('memoModal').style.display = 'flex';
-        document.getElementById('deleteBtn').style.display = 'none';
-        document.getElementById('modalSaveBtn').onclick = function() {
-            try {
-                const parsed = JSON.parse(document.getElementById('memoInput').value);
-                if(Array.isArray(parsed)) { db = parsed; saveAndRender(); closeModal(); alert("還原成功"); }
-            } catch(e) { alert("JSON 格式錯誤"); }
-        };
-    }
+    document.getElementById('modalTitle').innerText = "系統還原";
+    document.getElementById('modalSubTitle').innerText = "請貼上 JSON 備份數據";
+    
+    // 開啟時先顯示目前的資料（格式化後），方便使用者直接編輯或備份
+    document.getElementById('memoInput').value = JSON.stringify(db, null, 2);
+    
+    document.getElementById('memoModal').style.display = 'flex';
+    document.getElementById('deleteBtn').style.display = 'none';
+    
+    document.getElementById('modalSaveBtn').onclick = function() {
+        try {
+            const parsed = JSON.parse(document.getElementById('memoInput').value);
+            if(Array.isArray(parsed)) { 
+                db = parsed; 
+                saveAndRender(); 
+                closeModal(); 
+                alert("還原成功"); 
+            }
+        } catch(e) { 
+            alert("JSON 格式錯誤，請檢查是否有漏掉括號"); 
+        }
+    };
+}
 
     function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
 
@@ -481,7 +492,14 @@ function updateAIRecommendation() {
         }
     }
 
-    function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("已複製 JSON")); }
+    function exportData() { 
+    // JSON.stringify 的第三個參數 '2' 代表縮排 2 個空格
+    const prettyJSON = JSON.stringify(db, null, 2); 
+    
+    navigator.clipboard.writeText(prettyJSON).then(() => {
+        alert("已複製格式化 JSON");
+    }); 
+}
     function exportCSV() {
         let csv = "\ufeff狀態,品牌,品項,重量,價格,製造日期,有效期\n";
         db.forEach(i => csv += `"${i.status}","${i.brand}","${i.flavor}","${i.weightKg}","${i.price}","${i.mfgDate||''}","${i.expiry}"\n`);
