@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Food Center</title>
+    <title>飼料智慧管家 Pro</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -55,7 +55,7 @@
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px 24px 0 0; width:100%; max-width:500px; color: #333; animation: slideUp 0.3s ease; }
         .v2-active .modal-content { background: var(--card-v2); color: #fff; }
-        .modal-content textarea { min-height: 480px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
+        .modal-content textarea { min-height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
@@ -83,7 +83,6 @@
 
 <div class="container">
     <div id="page-v1" class="tab-page active">
-
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -134,13 +133,6 @@
             </div>
         </div>
 
-        <div class="v2-card">
-            <div class="tag-sticker v2-tag">Refill Planner</div>
-            <label style="color:rgba(255,255,255,0.4); font-size: 10px;">設定目標日期</label>
-            <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center;">
-            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">PENDING</div>
-        </div>
-
         <div class="v2-card"><div class="tag-sticker v2-tag">Archive</div><div id="archiveList"></div></div>
 
         <div class="v2-card">
@@ -157,6 +149,12 @@
 <script>
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let isArchiveExpanded = false;
+
+    // 強大日期解析：統一將所有 - 轉為 /，解決所有計算問題
+    function safeDate(str) {
+        if (!str) return new Date();
+        return new Date(str.toString().replace(/-/g, '/'));
+    }
 
     function showTab(tab) {
         document.getElementById('page-v1').classList.toggle('active', tab === 'v1');
@@ -184,7 +182,7 @@
         if(doneList.length === 0) return 150;
         let total = 0;
         doneList.forEach(i => {
-            const diff = (new Date(i.finishDate.replace(/\//g, '-')) - new Date(i.openDate.replace(/\//g, '-'))) / 86400000;
+            const diff = (safeDate(i.finishDate) - safeDate(i.openDate)) / 86400000;
             if(diff > 0) total += (i.weightKg * 1000) / diff;
         });
         return total / doneList.length;
@@ -192,58 +190,63 @@
 
     function getDynamicRemaining(item, dailyG) {
         if (item.status !== '食用中' || !item.openDate) return item.weightKg;
-        const daysPassed = (new Date() - new Date(item.openDate.replace(/\//g, '-'))) / 86400000;
+        const daysPassed = (new Date() - safeDate(item.openDate)) / 86400000;
         if (daysPassed <= 0) return item.weightKg;
         const consumed = (daysPassed * dailyG) / 1000;
         return Math.max(0, item.weightKg - consumed);
-    }
-
-    function calculateFutureFinish(days) {
-        const d = new Date(); d.setDate(d.getDate() + days);
-        return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
     }
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
         
-        // 核心修正：待開封清單顯示品牌 + 品項 + 有效期
-        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
+        // 核心邏輯：先找到「食用中」那包的完食日作為基準
+        const activeItem = db.find(i => i.status === '食用中');
+        const baseDate = activeItem && activeItem.finishDate ? safeDate(activeItem.finishDate) : new Date();
+
+        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => safeDate(a.expiry) - safeDate(b.expiry));
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
-            stocks.map(i => `<option value="${i.id}">${i.brand} - ${i.flavor || '一般'} (${i.expiry})</option>`).join('') : 
-            '<option value="">無庫存</option>';
+            stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
         
         const renderItem = (i) => {
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            let dateInfo = '';
-            if (i.status === '庫存') {
-                const days = Math.round((i.weightKg * 1000) / dailyG);
-                const estFinish = calculateFutureFinish(days);
-                const isRisk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅：${i.expiry}</div>
-                            <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 約可吃 ${days} 天 | 預計在${estFinish}吃完</div>`;
-            } else if (i.status === '食用中') {
-                const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅：${i.expiry}</div>
-                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 預計在${i.finishDate}吃完</div>`;
-            } else {
-                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁：${i.finishDate}</div>`;
+            let dateInfo = i.status === '已吃完' ? `🏁：${i.finishDate}` : `📅：${i.expiry}`;
+            let extra = "";
+
+            if (i.status === '食用中') {
+                const isRisk = i.finishDate && safeDate(i.finishDate) > safeDate(i.expiry);
+                extra = `<div style="font-size:10px; color:#2e7d32; font-weight:600;" class="${isRisk?'warning-text':''}">
+                            🍴 剩 ${currentWeight.toFixed(2)}kg | 預計 ${i.finishDate} 完食 ${isRisk?'⚠️':''}
+                         </div>`;
+            } 
+            else if (i.status === '庫存') {
+                // 邏輯改動：從目前那包吃完的日子開始算
+                const canLastDays = Math.round((i.weightKg * 1000) / dailyG);
+                const estFinishDate = new Date(baseDate); 
+                estFinishDate.setDate(estFinishDate.getDate() + canLastDays);
+                const dateStr = `${estFinishDate.getFullYear()}/${String(estFinishDate.getMonth()+1).padStart(2,'0')}/${String(estFinishDate.getDate()).padStart(2,'0')}`;
+                
+                // 檢查如果下一包開這一袋，吃完時是否已經過期
+                const isRisk = estFinishDate > safeDate(i.expiry);
+                extra = `<div style="font-size:10px; color:#666;" class="${isRisk?'warning-text':''}">
+                            ${isRisk ? '⚠️ ' : '💡 '}下一包開這袋：約可吃 ${canLastDays} 天至 ${dateStr}
+                         </div>`;
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                    <div style="font-size:0.85rem;color:#777;margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
-                    ${dateInfo}
+                    <div style="font-size:0.85rem;color:#777;">${i.flavor} (${i.weightKg}kg)</div>
+                    <div style="font-size:10px; color:#999; margin-top:4px;">${dateInfo}</div>${extra}
                 </div>
                 <div style="text-align:right;"><div class="price-tag">$${i.price||'-'}</div><span style="font-size:10px;color:#bbb;">$${up}/g</span></div></div>`;
         };
 
         document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="text-align:center;padding:20px;color:#999;">無活躍項目</div>';
-        const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')));
+        const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => safeDate(b.finishDate) - safeDate(a.finishDate));
         const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
         document.getElementById('archiveList').innerHTML = displayDone.map(renderItem).join('') + (allDone.length > 5 ? `<button class="expand-btn" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開更多'}</button>` : '');
     }
@@ -267,8 +270,7 @@
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中'; db[idx].openDate = openStr;
         const days = (db[idx].weightKg * 1000) / getDailyUsage();
-        const fDate = new Date(openStr.replace(/\//g, '-'));
-        fDate.setDate(fDate.getDate() + Math.round(days));
+        const fDate = safeDate(openStr); fDate.setDate(fDate.getDate() + Math.round(days));
         db[idx].finishDate = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
         saveAndRender();
     }
@@ -291,13 +293,15 @@
 
     function openRestoreModal() {
         document.getElementById('modalTitle').innerText = "系統還原";
-        document.getElementById('modalSubTitle').innerText = "請貼上 JSON 備份數據";
+        document.getElementById('modalSubTitle').innerText = "請貼上 JSON 數據 (會自動修正格式)";
         document.getElementById('memoInput').value = "";
         document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('deleteBtn').style.display = 'none';
         document.getElementById('modalSaveBtn').onclick = function() {
             try {
-                const parsed = JSON.parse(document.getElementById('memoInput').value);
+                let raw = document.getElementById('memoInput').value.trim();
+                raw = raw.replace(/"(\d{4})-(\d{2})-(\d{2})"/g, '"$1/$2/$3"');
+                const parsed = JSON.parse(raw);
                 if(Array.isArray(parsed)) { db = parsed; saveAndRender(); closeModal(); alert("還原成功"); }
             } catch(e) { alert("JSON 格式錯誤"); }
         };
@@ -315,11 +319,6 @@
         document.getElementById('ai-finish-date-big').innerText = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
         document.getElementById('ai-days-left-tag').innerText = totalDays;
         document.getElementById('ai-progress-bar').style.width = Math.min(100, (totalDays / 60) * 100) + "%";
-        const targetVal = document.getElementById('ai-target-date').value;
-        if(targetVal.length === 10) {
-            const gap = ((((new Date(targetVal.replace(/\//g, '-')) - new Date()) / 86400000) * dailyG) / 1000 - currentTotalKg).toFixed(2);
-            document.getElementById('ai-refill-gap').innerHTML = gap > 0 ? `尚差 ${gap} kg` : "✅ 庫存充足！";
-        }
     }
 
     function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("已複製 JSON")); }
