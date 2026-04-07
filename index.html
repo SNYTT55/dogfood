@@ -440,6 +440,21 @@ function updateAIRecommendation() {
         };
     }
 
+    function copyJSON() {
+        const json = JSON.stringify(db, null, 4);
+        navigator.clipboard.writeText(json).then(() => alert("✅ JSON 已複製到剪貼簿"));
+    }
+
+    function clearAllData() {
+        if(confirm("⚠️ 警告：這將永久刪除所有紀錄，確定嗎？")) {
+            if(confirm("最後確認：真的要全部刪除？（不可還原）")) {
+                db = [];
+                saveAndRender();
+                alert("🗑 已清除所有數據");
+            }
+        }
+    }
+    
     function openRestoreModal() {
     document.getElementById('modalTitle').innerText = "系統還原";
     document.getElementById('modalSubTitle').innerText = "請貼上 JSON 備份數據";
