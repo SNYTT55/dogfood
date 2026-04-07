@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 全功能整合修復版</title>
+    <title>Samy管家 - 手動輸入優化版</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f8f9fa; --text: #333; --blue: #1976d2; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -12,13 +12,13 @@
         h1 { font-size: 1.5rem; color: var(--primary); margin: 10px 0 20px; text-align: center; }
         .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
         h2 { font-size: 1.1rem; margin: 0 0 12px 0; color: #555; }
-        
         label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #666; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; background: #fafafa; }
         
-        /* 修正有效期限框框跑掉：強制對齊 */
-        .form-group { width: 100%; margin-top: 10px; clear: both; }
+        /* 修改輸入框樣式，強化提示感 */
+        input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; background: #fafafa; }
+        input::placeholder { color: #ccc; font-size: 0.9rem; }
 
+        .form-group { width: 100%; margin-top: 10px; clear: both; }
         .btn { width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
@@ -36,7 +36,20 @@
         .avoid-buy { background-color: #fff1f0 !important; } 
 
         .sub-text { font-size: 0.8rem; color: #888; }
-        .memo-text { font-size: 0.75rem; color: #2e7d32; font-weight: bold; font-style: normal; margin-top: 4px; background: rgba(255,255,255,0.6); padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        
+        /* 心得區：綠色、粗體、非斜體 */
+        .memo-text { 
+            font-size: 0.75rem; 
+            color: #2e7d32; 
+            font-weight: bold; 
+            font-style: normal; 
+            margin-top: 4px; 
+            background: rgba(46, 125, 50, 0.08); 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            display: inline-block; 
+        }
+        
         .food-meta { text-align: right; flex-shrink: 0; }
         .price-tag { font-weight: bold; color: var(--primary); font-size: 0.95rem; }
         .unit-price { font-size: 10px; color: #aaa; }
@@ -59,26 +72,27 @@
 </div>
 
 <div class="container">
-    <h1>🐾管家</h1>
+    <h1>🐾 Samy管家123</h1>
 
     <div class="card">
         <h2>📦 新購入庫</h2>
         <div style="display: flex; gap: 8px;">
-            <div style="flex:3"><label>品牌</label><input type="text" id="brand"></div>
-            <div style="flex:7"><label>品項</label><input type="text" id="flavor"></div>
+            <div style="flex:3"><label>品牌</label><input type="text" id="brand" placeholder="品牌"></div>
+            <div style="flex:7"><label>品項</label><input type="text" id="flavor" placeholder="口味/品項"></div>
         </div>
         <div style="display: flex; gap: 8px; margin-top:10px;">
             <div style="flex: 1.5;"><label>重量</label>
                 <div style="display: flex; gap: 4px;">
-                    <input type="number" id="weight" step="0.01">
-                    <select id="unit" style="width:60px;"><option value="kg">kg</option><option value="lb">lb</option></select>
+                    <input type="number" id="weight" step="0.01" placeholder="數值">
+                    <select id="unit" style="width:70px;"><option value="kg">kg</option><option value="lb">lb</option></select>
                 </div>
             </div>
-            <div style="flex: 1;"><label>價格</label><input type="number" id="price"></div>
+            <div style="flex: 1;"><label>價格</label><input type="number" id="price" placeholder="台幣"></div>
         </div>
+        
         <div class="form-group">
-            <label>有效期限</label>
-            <input type="date" id="expiry">
+            <label>有效期限 (YYYY/MM/DD)</label>
+            <input type="text" id="expiry" inputmode="numeric" placeholder="例如: 2026/12/31" onkeyup="formatDate(this)">
         </div>
         <button class="btn btn-primary" onclick="addEntry()">加入庫存清單</button>
     </div>
@@ -87,9 +101,9 @@
         <h2>🍴 開封管理</h2>
         <label>選擇待開封飼料</label>
         <select id="stockSelect" style="margin-bottom:10px;"></select>
-        <label>開封日期</label>
-        <input type="date" id="openDate" style="margin-bottom:10px;">
-        <button class="btn btn-secondary" onclick="markAsOpen()">確認開封</button>
+        <label>開封日期 (YYYY/MM/DD)</label>
+        <input type="text" id="openDate" inputmode="numeric" placeholder="預設今日" onkeyup="formatDate(this)">
+        <button class="btn btn-secondary" style="margin-top:10px;" onclick="markAsOpen()">確認開封</button>
     </div>
 
     <div class="card">
@@ -110,12 +124,32 @@
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let currentEditId = null;
 
+    // 自動格式化日期：輸入 20260407 自動變 2026/04/07
+    function formatDate(obj) {
+        let v = obj.value.replace(/\D/g, '').substring(0, 8);
+        if (v.length > 4 && v.length <= 6) {
+            v = v.substring(0, 4) + '/' + v.substring(4);
+        } else if (v.length > 6) {
+            v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6);
+        }
+        obj.value = v;
+    }
+
+    // 取得今天日期的字串 (YYYY/MM/DD)
+    function getTodayStr() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}/${m}/${day}`;
+    }
+
     function getDailyUsage() {
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
         if(doneList.length === 0) return 150;
         let total = 0;
         doneList.forEach(i => {
-            const diff = (new Date(i.finishDate) - new Date(i.openDate)) / 86400000;
+            const diff = (new Date(i.finishDate.replace(/\//g, '-')) - new Date(i.openDate.replace(/\//g, '-'))) / 86400000;
             if(diff > 0) total += (i.weightKg * 1000) / diff;
         });
         return total / doneList.length;
@@ -125,7 +159,7 @@
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
 
-        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
+        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length 
             ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}</option>`).join('')
             : '<option value="">目前無庫存</option>';
@@ -176,7 +210,7 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || !expiry) return alert("資訊不足");
+        if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊不足或日期格式錯誤 (需為 YYYY/MM/DD)");
         const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor, weightKg: parseFloat(weightKg), price: price||0, expiry, status: '庫存', memo: "", openDate: null, finishDate: null });
         saveAndRender();
@@ -186,16 +220,19 @@
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
         if(!id) return alert("請選擇飼料");
-        const openStr = document.getElementById('openDate').value;
+        let openStr = document.getElementById('openDate').value;
+        if(!openStr) openStr = getTodayStr();
+        if(openStr.length < 10) return alert("日期格式錯誤 (需為 YYYY/MM/DD)");
+
         const dailyG = getDailyUsage();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中';
         db[idx].openDate = openStr;
         const days = (db[idx].weightKg * 1000) / dailyG;
-        const fDate = new Date(openStr);
+        const fDate = new Date(openStr.replace(/\//g, '-'));
         fDate.setDate(fDate.getDate() + Math.round(days));
-        db[idx].finishDate = fDate.toISOString().split('T')[0];
+        db[idx].finishDate = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
         saveAndRender();
     }
 
@@ -226,17 +263,9 @@
         document.getElementById('toggleBtn').innerText = isHidden ? '▲ 收起舊紀錄' : '▼ 查看舊紀錄';
     }
 
-    // 數據管理功能
     function exportData() {
         const dataStr = JSON.stringify(db);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Samy_Backup_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        // 同時複製到剪貼簿方便手機操作
-        navigator.clipboard.writeText(dataStr).then(() => alert("數據已導出為文件，並已複製代碼到剪貼簿！"));
+        navigator.clipboard.writeText(dataStr).then(() => alert("數據代碼已複製到剪貼簿！請自行貼上至記事本備份。"));
     }
 
     function importData() {
@@ -244,16 +273,13 @@
         if (input) {
             try {
                 const imported = JSON.parse(input);
-                if (Array.isArray(imported)) {
-                    db = imported;
-                    saveAndRender();
-                    alert("還原成功！");
-                }
-            } catch (e) { alert("代碼格式錯誤，還原失敗。"); }
+                if (Array.isArray(imported)) { db = imported; saveAndRender(); alert("還原成功！"); }
+            } catch (e) { alert("失敗。"); }
         }
     }
 
-    document.getElementById('openDate').valueAsDate = new Date();
+    // 頁面加載時設定預設今日日期
+    document.getElementById('openDate').value = getTodayStr();
     saveAndRender();
 </script>
 </body>
