@@ -290,7 +290,7 @@ function updateAIRecommendation() {
 
         if (estFinishDate > expiryDate) {
             score += 5000; // 給予極高分，強制置頂
-            reasons.push("⚠️ 有過期風險");
+            reasons.push("⚠️有過期風險");
         }
 
         // --- 核心邏輯 2: 主食輪替 (避開重複) ---
@@ -298,7 +298,7 @@ function updateAIRecommendation() {
             score -= 1000; // 同口味大幅扣分，除非它快過期了否則不選
         } else {
             score += 500;
-            if (lastGroup) reasons.push(`避開${lastGroup}`);
+            if (lastGroup) reasons.push(`避開重複主食；上次是${lastGroup}`);
         }
 
         // --- 核心邏輯 3: 製造日期 (先進先出) ---
@@ -306,7 +306,7 @@ function updateAIRecommendation() {
             // 計算這包飼料「出廠至今」的天數
             const ageInDays = (new Date() - mfgDate) / 86400000;
             score += (ageInDays * 1); // 越早製造的分數越高 (每天 +1 分)
-            reasons.push("優先消化舊品");
+            reasons.push("出廠較久");
         }
 
         return { item, score, reasons, group };
@@ -317,10 +317,9 @@ function updateAIRecommendation() {
     const reasonText = best.reasons.slice(0, 2).map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ');
 
     document.getElementById('ai-rec-content').innerHTML = `
-        <div style="font-size:16px; font-weight:800; margin-bottom:6px;">${best.item.brand} · ${best.item.flavor}</div>
+        <div style="font-size:16px; font-weight:800; margin-bottom:6px;">${best.item.brand} · ${best.item.flavor}</div> <span style="font-size:10px; color:#999;">(分類: ${best.group})</span>
         <div style="display:flex; align-items:center; gap:5px;">
             ${reasonText}
-            <span style="font-size:10px; color:#999;">(分類: ${best.group})</span>
         </div>
         <button onclick="document.getElementById('stockSelect').value='${best.item.id}'" class="expand-btn" style="border-style:solid; border-color:rgba(0,0,0,0.1); color:inherit; padding:6px; margin-top:10px; background:rgba(0,0,0,0.03);">
             📍 自動選取此項
