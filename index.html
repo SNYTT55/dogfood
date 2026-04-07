@@ -156,7 +156,7 @@
 
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length 
-            ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}</option>`).join('')
+            ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('')
             : '<option value="">目前無庫存</option>';
 
         const sortedAll = [...db].sort((a,b) => {
