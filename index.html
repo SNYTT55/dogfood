@@ -471,8 +471,8 @@ function updateAIRecommendation() {
             toolBar.id = 'modal-tools';
             toolBar.style = "display:flex; gap:10px; margin-top:10px; margin-bottom:10px;";
             toolBar.innerHTML = `
-                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; padding:10px; border:1px solid #ddd;" onclick="document.getElementById('memoInput').value=''">一鍵清空</button>
-                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; padding:10px; border:1px solid #bbdefb;" onclick="pasteToModal()">一鍵貼上</button>
+                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; " onclick="document.getElementById('memoInput').value=''">一鍵清空</button>
+                <button class="btn" style="background:none; border:none; color:var(--danger); flex:1; font-size:13px; " onclick="pasteToModal()">一鍵貼上</button>
                 
             `;
             // 將這兩個按鈕插在輸入框下面
