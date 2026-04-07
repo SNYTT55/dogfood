@@ -3,112 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>狗狗飼料管家</title>
+    <title>58飼料</title>
     <style>
         :root { --primary: #d2691e; --secondary: #6b8e23; --bg: #f8f9fa; --text: #333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 50px; }
-        
         .container { max-width: 500px; margin: auto; }
         h1 { font-size: 1.5rem; color: var(--primary); margin: 10px 0 20px; text-align: center; }
-        
-        /* 卡片設計 */
         .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        h2 { font-size: 1.1rem; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; color: #555; }
-        
-        /* 輸入框優化 */
+        h2 { font-size: 1.1rem; margin: 0 0 15px 0; color: #555; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #666; }
-        input, select { 
-            width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; 
-            font-size: 16px; /* 防止 iOS 自動縮放 */
-            background: #fafafa; transition: 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--secondary); background: white; }
-        
-        /* 按鈕優化 */
-        .btn { 
-            width: 100%; padding: 15px; border-radius: 12px; border: none; 
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
-            display: block; text-align: center; margin-top: 10px;
-        }
+        input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; background: #fafafa; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-import { background: #666; color: white; font-size: 14px; padding: 10px; }
 
         /* 狀態標籤 */
-        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-        .bg-eating { background: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
-        .bg-stock { background: #f5f5f5; color: #757575; }
-        .bg-done { background: #eee; color: #bbb; text-decoration: line-through; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-left: 5px; }
+        .bg-eating { background: #e8f5e9; color: #000; border: 2px solid #2e7d32; }
+        .bg-stock { background: #e3f2fd; color: #757575; border: 1px solid #bbdefb; }
+        .bg-done { background: #f5f5f5; color: #9e9e9e; border: 1px solid #e0e0e0; }
 
-        /* 列表優化 */
-        .food-item { 
-            border-bottom: 1px solid #f0f0f0; padding: 15px 0; 
-            display: flex; justify-content: space-between; align-items: flex-start;
-        }
-        .food-item:last-child { border: none; }
+        .food-item { border-bottom: 1px solid #f0f0f0; padding: 15px 0; display: flex; justify-content: space-between; align-items: flex-start; }
         .food-info b { display: block; font-size: 1rem; margin-bottom: 2px; }
         .food-info span { font-size: 0.85rem; color: #888; }
         .food-meta { text-align: right; font-size: 0.85rem; }
-
-        .highlight-box { background: #fffde7; border: 1px solid #fff59d; padding: 15px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem; line-height: 1.4; }
+        .highlight-box { background: #fffde7; border: 1px solid #fff59d; padding: 15px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🐾 狗狗食糧管家</h1>
+    <h1>🐾 Samy管家</h1>
 
     <div class="card">
         <h2>📦 新購飼料入庫</h2>
-        <div class="form-group">
-            <label>品牌</label>
-            <input type="text" id="brand" placeholder="例如：渴望">
-        </div>
-        <div class="form-group">
-            <label>品項 (口味)</label>
-            <input type="text" id="flavor" placeholder="例如：鮮雞肉">
-        </div>
+        <div class="form-group"><label>品牌</label><input type="text" id="brand"></div>
+        <div class="form-group"><label>品項</label><input type="text" id="flavor"></div>
         <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 2;">
-                <label>重量</label>
-                <div style="display: flex; gap: 5px;">
-                    <input type="number" id="weight" step="0.1" placeholder="數值">
-                    <select id="unit" style="width: 80px;"><option value="kg">kg</option><option value="lb">lb</option></select>
-                </div>
-            </div>
-            <div class="form-group" style="flex: 1.5;">
-                <label>價格</label>
-                <input type="number" id="price" placeholder="NTD">
-            </div>
+            <div style="flex: 2;"><label>重量</label><div style="display: flex; gap: 5px;"><input type="number" id="weight" step="0.01"><select id="unit" style="width: 70px;"><option value="kg">kg</option><option value="lb">lb</option></select></div></div>
+            <div style="flex: 1.5;"><label>價格</label><input type="number" id="price"></div>
         </div>
-        <div class="form-group">
-            <label>有效期限</label>
-            <input type="date" id="expiry">
-        </div>
+        <div class="form-group"><label>有效期限</label><input type="date" id="expiry"></div>
         <button class="btn btn-primary" onclick="addEntry()">加入庫存清單</button>
     </div>
 
     <div class="card">
         <h2>🍴 開封管理</h2>
-        <div class="form-group">
-            <label>選擇要開啟的飼料 (依到期日排序)</label>
-            <select id="stockSelect"></select>
-        </div>
-        <div class="form-group">
-            <label>開封日期</label>
-            <input type="date" id="openDate">
-        </div>
+        <div class="form-group"><label>選擇下一包</label><select id="stockSelect"></select></div>
+        <div class="form-group"><label>開封日期</label><input type="date" id="openDate"></div>
         <button class="btn btn-secondary" onclick="markAsOpen()">確認開封並開始推算</button>
         <div id="predictMsg" class="highlight-box" style="display: none;"></div>
     </div>
 
     <div class="card">
-        <h2>📋 歷史與庫存紀錄</h2>
-        <div id="recordList">
-            </div>
-        <button onclick="exportCSV()" style="background:none; border:none; color:#ccc; font-size:12px; margin-top:20px; width:100%;">匯出備份 CSV</button>
+        <h2>📋 庫存與歷史紀錄</h2>
+        <div id="recordList"></div>
+    </div>
+
+    <div class="card" style="background: #eee; border: none;">
+        <h2 style="font-size: 0.9rem;">💾 資料搬家/備份專區</h2>
+        <textarea id="importArea" rows="3" style="font-size: 12px;" placeholder="請在此貼上我給你的 JSON 代碼..."></textarea>
+        <button class="btn btn-import" onclick="importData()">確定匯入 Numbers 資料</button>
+        <button onclick="exportCSV()" style="background:none; border:none; color:#999; font-size:11px; margin-top:10px; width:100%;">匯出 CSV 備份</button>
     </div>
 </div>
 
@@ -122,30 +81,18 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-
-        if(!brand || !weight || !expiry) return alert("請填寫品牌、重量及到期日");
-
-        const weightKg = (unit === 'lb') ? (weight * 0.4535).toFixed(2) : weight;
-        
-        db.push({
-            id: Date.now(),
-            brand, flavor, weightKg, price, expiry,
-            openDate: null, finishDate: null, status: '庫存'
-        });
-        
+        if(!brand || isNaN(weight) || !expiry) return alert("請填寫品牌、重量及到期日");
+        const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
+        db.push({ id: Date.now(), brand, flavor, weightKg, price, expiry, openDate: null, finishDate: null, status: '庫存' });
         saveAndRender();
-        // 清空輸入框
         ['brand', 'flavor', 'weight', 'price', 'expiry'].forEach(id => document.getElementById(id).value = '');
-        alert("已成功入庫！");
     }
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
         const openStr = document.getElementById('openDate').value;
-        if(!id) return alert("庫存已空，快去買飼料吧！");
-
-        // 計算歷史每日平均食量
-        const doneList = db.filter(i => i.status === '已吃完');
+        if(!id) return alert("沒庫存囉");
+        const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
         let dailyG = 150;
         if(doneList.length > 0) {
             let totalD = 0;
@@ -155,38 +102,43 @@
             });
             dailyG = totalD / doneList.length;
         }
-
         const idx = db.findIndex(i => i.id == id);
-        
-        // 結算上一包
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
-
-        // 開啟這包
         db[idx].openDate = openStr;
         db[idx].status = '食用中';
         const days = (db[idx].weightKg * 1000) / dailyG;
         const finishDate = new Date(openStr);
         finishDate.setDate(finishDate.getDate() + days);
         db[idx].finishDate = finishDate.toISOString().split('T')[0];
-
         saveAndRender();
-        const msg = document.getElementById('predictMsg');
-        msg.style.display = 'block';
-        msg.innerHTML = `✨ <b>${db[idx].brand}</b> 開封成功！<br>依歷史食量約 <b>${Math.round(dailyG)}g/日</b> 推算，預計 <b>${db[idx].finishDate}</b> 完食。`;
+    }
+
+    // 搬家匯入邏輯
+    function importData() {
+        const input = document.getElementById('importArea').value.trim();
+        if(!input) return alert("請貼上代碼");
+        try {
+            const newData = JSON.parse(input);
+            if(confirm("匯入將會覆蓋目前手機上的資料，確定嗎？")) {
+                db = newData;
+                saveAndRender();
+                alert("匯入成功！");
+                document.getElementById('importArea').value = "";
+            }
+        } catch(e) { alert("代碼格式不正確，請重新複製一次"); }
     }
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
-        
-        // 更新選單
         const select = document.getElementById('stockSelect');
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
         select.innerHTML = stocks.map(i => `<option value="${i.id}">${i.expiry} 到期 | ${i.brand}</option>`).join('');
 
-        // 渲染列表
         const list = document.getElementById('recordList');
-        const displayData = [...db].sort((a,b) => (b.status === '食用中') - (a.status === '食用中') || b.id - a.id);
-        
+        const displayData = [...db].sort((a,b) => {
+            const s = {'食用中': 3, '庫存': 2, '已吃完': 1};
+            return s[b.status] - s[a.status] || b.id - a.id;
+        });
         list.innerHTML = displayData.map(i => `
             <div class="food-item">
                 <div class="food-info">
@@ -207,7 +159,7 @@
         const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "狗狗飼料紀錄.csv";
+        link.download = "Samy食糧紀錄.csv";
         link.click();
     }
 
