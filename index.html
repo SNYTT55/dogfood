@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>飼料智慧管家 Pro</title>
+    <title>Food Center</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -94,8 +94,8 @@
                 <div style="flex:1;"><label>價格</label><input type="number" id="price"></div>
             </div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <div style="flex:1;"><label>製造日期 (YYYY/MM/DD)</label><input type="text" id="mfg" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2025/01/01"></div>
-                <div style="flex:1;"><label>有效期限 (YYYY/MM/DD)</label><input type="text" id="expiry" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2026/12/31"></div>
+                <div style="flex:1;"><label>製造日期</label><input type="text" id="mfg" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2025/01/01"></div>
+                <div style="flex:1;"><label>有效期限</label><input type="text" id="expiry" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2026/12/31"></div>
             </div>
             <button class="btn btn-primary" style="margin-top:15px;" onclick="addEntry()">加入庫存</button>
         </div>
@@ -205,7 +205,7 @@
         const activeItem = db.find(i => i.status === '食用中');
         const baseDate = activeItem && activeItem.finishDate ? safeDate(activeItem.finishDate) : new Date();
 
-        // 核心邏輯：庫存改為按照「製造日期」排序
+        // 依製造日期排序 (MFG 越早越前面)
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => safeDate(a.mfg || '1970/01/01') - safeDate(b.mfg || '1970/01/01'));
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
             stocks.map(i => `<option value="${i.id}">${i.brand} - ${i.flavor || '一般'} (MFG:${i.mfg || '-'})</option>`).join('') : 
@@ -216,7 +216,8 @@
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            let dateInfo = i.status === '已吃完' ? `🏁：${i.finishDate}` : `📅 效期：${i.expiry}`;
+            // 核心調整：製造日期 與 有效期限 放在同一列
+            let dateRow = i.status === '已吃完' ? `🏁：${i.finishDate}` : `🗓️ ${i.mfg || '--'} / ${i.expiry || '--'}`;
             let extra = "";
 
             if (i.status === '食用中') {
@@ -234,20 +235,18 @@
                 const isRisk = estFinishDate > safeDate(i.expiry);
                 extra = `<div style="font-size:10px; color:#666; margin-top:4px;" class="${isRisk?'warning-text':''}">
                             ${isRisk ? '⚠️ ' : '💡 '}下一包開這袋：約可吃 ${canLastDays} 天至 ${dateStr}
-                         </div>
-                         ${i.mfg ? `<div style="font-size:9px; color:#aaa; margin-top:2px;">🏭 製造日期：${i.mfg}</div>` : ''}`;
+                         </div>`;
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
                     <div style="font-size:0.85rem;color:#777;">${i.flavor} (${i.weightKg}kg)</div>
-                    <div style="font-size:10px; color:#999; margin-top:4px;">${dateInfo}</div>${extra}
+                    <div style="font-size:10px; color:#999; margin-top:4px;">${dateRow}</div>${extra}
                 </div>
                 <div style="text-align:right;"><div class="price-tag">$${i.price||'-'}</div><span style="font-size:10px;color:#bbb;">$${up}/g</span></div></div>`;
         };
 
-        // 渲染時，活躍清單中的庫存也按照製造日期排序
         const activeListItems = [
             ...db.filter(i => i.status === '食用中'),
             ...db.filter(i => i.status === '庫存').sort((a,b) => safeDate(a.mfg || '1970/01/01') - safeDate(b.mfg || '1970/01/01'))
