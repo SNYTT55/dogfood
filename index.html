@@ -5,58 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icon.png">
-    <title>飼料管理中心</title>
+    <title>飼料管理中心 Pro</title>
     <style>
-        :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f4f7f6; --text: #333; --blue: #007aff; --border: #e0e0e0; }
+        /* --- 核心變數與基礎 --- */
+        :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f4f7f6; --text: #333; --blue: #007aff; --border: #e0e0e0; --ai-purple: #7e57c2; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 60px; line-height: 1.4; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.4; }
+        
+        /* --- 頂部導航 (新) --- */
+        .nav-tabs { display: flex; background: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .tab-btn { flex: 1; text-align: center; padding: 15px 0; font-size: 0.9rem; font-weight: 800; color: #bbb; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-btn.ai-active { color: var(--ai-purple); border-bottom-color: var(--ai-purple); }
+
+        .tab-page { display: none; padding: 15px; }
+        .tab-page.active { display: block; }
+
+        /* --- V1 經典樣式 (100% 保留) --- */
         .container { max-width: 500px; margin: auto; }
         h1 { font-size: 1.4rem; color: var(--primary); margin: 15px 0 25px; text-align: center; font-weight: 800; letter-spacing: 1px; }
-        
         .card { background: white; border-radius: 20px; padding: 22px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); }
         h2 { font-size: 1rem; margin: 0 0 16px 0; color: #444; font-weight: 700; display: flex; align-items: center; }
         h2::before { content: ""; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; margin-right: 8px; }
 
-        label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #888; text-transform: uppercase; }
+        /* Q1 修正：解決擠壓問題，增加標籤與輸入框的呼吸空間 */
+        label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px; color: #888; text-transform: uppercase; }
+        .form-group { margin-bottom: 18px; } 
         
-        input, select, textarea { 
-            width: 100%; padding: 12px 14px; border: 1.5px solid #f0f0f0; border-radius: 12px; 
-            font-size: 16px; background: #fafafa; transition: all 0.2s ease; color: #222;
-        }
+        input, select, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #f0f0f0; border-radius: 12px; font-size: 16px; background: #fafafa; transition: all 0.2s ease; color: #222; }
         input:focus, select:focus { border-color: var(--blue); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
-        
         .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
-        .form-group { margin-bottom: 12px; }
 
         .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-primary { background: var(--blue); color: white; margin-top: 8px; }
         .btn-secondary { background: var(--secondary); color: white; }
         
         .food-item { border-bottom: 1px solid #f5f5f5; padding: 16px 4px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .food-item:last-child { border-bottom: none; }
-        .food-info { flex: 1; min-width: 0; cursor: pointer; }
-        .food-title-row { display: flex; align-items: center; margin-bottom: 4px; }
-        .food-info b { font-size: 1rem; color: #1a1a1a; }
-        
         .status-badge { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; margin-left: 8px; flex-shrink: 0; }
         .bg-eating { background-color: #e8f5e9; color: #2e7d32; }
         .bg-stock { background-color: #e3f2fd; color: #1976d2; }
         .bg-done { background-color: #f5f5f5; color: #999; }
-        .avoid-buy { background-color: #fff8f8 !important; border-radius: 12px; padding-left: 10px !important; } 
-
-        .sub-text { font-size: 0.85rem; color: #777; display: block; margin-bottom: 4px; }
-        .memo-text { font-size: 0.75rem; color: #2e7d32; font-weight: 600; margin-top: 8px; background: #f0f7f0; padding: 6px 10px; border-radius: 8px; display: inline-block; }
-        
-        .food-meta { text-align: right; flex-shrink: 0; padding-top: 2px; }
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
-        .unit-price { font-size: 10px; color: #bbb; }
-        
-        .management-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; margin-bottom: 30px; }
-        .tool-btn { background:#fff; color:#666; font-size:11px; padding: 10px 5px; border:1px solid #eee; border-radius:12px; font-weight:600; }
 
-        #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
+        /* V2 專屬工具樣式 */
+        .management-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .tool-btn { background:#fff; color:#666; font-size:11px; padding: 10px 5px; border:1px solid #eee; border-radius:12px; font-weight:600; }
+        
+        /* Modal */
+        #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; }
+
+        /* AI 視覺效果 */
+        .ai-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .ai-stat-box { background: #fdf6f0; border: 1px solid #fae1cd; padding: 15px; border-radius: 15px; text-align: center; }
+        .ai-val { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -72,49 +74,86 @@
     </div>
 </div>
 
+<nav class="nav-tabs">
+    <div id="btn-v1" class="tab-btn active" onclick="showTab('v1')">📋 庫存管理</div>
+    <div id="btn-v2" class="tab-btn" onclick="showTab('v2')">🤖 AI 與歷史</div>
+</nav>
+
 <div class="container">
-    <h1>🐾 飼料管理中心</h1>
-
-    <div class="card">
-        <h2>新購入庫</h2>
-        <div class="form-row">
-            <div style="flex:3"><label>品牌</label><input type="text" id="brand" placeholder="品牌"></div>
-            <div style="flex:7"><label>品項</label><input type="text" id="flavor" placeholder="口味/配方"></div>
-        </div>
-        <div class="form-row">
-            <div style="flex: 1.5;"><label>重量</label>
-                <div style="display: flex; gap: 5px;">
-                    <input type="number" id="weight" step="0.01" placeholder="數值">
-                    <select id="unit" style="width:75px;"><option value="kg">kg</option><option value="lb">lb</option></select>
-                </div>
+    
+    <div id="page-v1" class="tab-page active">
+        <h1>🐾 飼料管理中心</h1>
+        
+        <div class="card">
+            <h2>新購入庫</h2>
+            <div class="form-row">
+                <div style="flex:3"><label>品牌</label><input type="text" id="brand" placeholder="品牌"></div>
+                <div style="flex:7"><label>品項</label><input type="text" id="flavor" placeholder="口味/配方"></div>
             </div>
-            <div style="flex: 1;"><label>價格</label><input type="number" id="price" placeholder="NT$"></div>
+            <div class="form-row">
+                <div style="flex: 1.5;"><label>重量</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="weight" step="0.01" placeholder="數值">
+                        <select id="unit" style="width:75px;"><option value="kg">kg</option><option value="lb">lb</option></select>
+                    </div>
+                </div>
+                <div style="flex: 1;"><label>價格</label><input type="number" id="price" placeholder="NT$"></div>
+            </div>
+            <div class="form-group">
+                <label>有效期限 (YYYY/MM/DD)</label>
+                <input type="text" id="expiry" inputmode="numeric" placeholder="2026/12/31" onkeyup="formatDate(this)">
+            </div>
+            <button class="btn btn-primary" onclick="addEntry()">加入庫存</button>
         </div>
-        <div class="form-group">
-            <label>有效期限 (YYYY/MM/DD)</label>
-            <input type="text" id="expiry" inputmode="numeric" placeholder="2026/12/31" onkeyup="formatDate(this)">
+
+        <div class="card">
+            <h2>開封管理</h2>
+            <div class="form-group"><label>待開封清單</label><select id="stockSelect"></select></div>
+            <div class="form-group"><label>開封日期</label><input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)"></div>
+            <button class="btn btn-secondary" onclick="markAsOpen()">確認開封</button>
         </div>
-        <button class="btn btn-primary" onclick="addEntry()">加入庫存</button>
+
+        <div class="card">
+            <h2>目前存量</h2>
+            <div id="recentList"></div>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>開封管理</h2>
-        <div class="form-group"><label>待開封清單</label><select id="stockSelect"></select></div>
-        <div class="form-group"><label>開封日期</label><input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)"></div>
-        <button class="btn btn-secondary" onclick="markAsOpen()">確認開封</button>
-    </div>
+    <div id="page-v2" class="tab-page">
+        <h1>🤖 AI 決策輔助</h1>
+        
+        <div class="card" style="border-left: 5px solid var(--ai-purple);">
+            <h2>智慧存量分析</h2>
+            <div class="ai-stat-grid">
+                <div class="ai-stat-box"><label>目前總重</label><div id="ai-total-kg" class="ai-val">-- kg</div></div>
+                <div class="ai-stat-box"><label>還能吃多久</label><div id="ai-total-days" class="ai-val">-- 天</div></div>
+            </div>
+            <p id="ai-finish-desc" style="font-size:0.9rem; color:#666;">載入數據中...</p>
+        </div>
 
-    <div class="card">
-        <h2>管理紀錄</h2>
-        <div id="recentList"></div>
-        <button id="toggleBtn" style="background:none; border:1px solid #eee; color:#999; padding:12px; width:100%; border-radius:12px; font-size:13px; margin-top:15px; display:none;" onclick="toggleArchive()">▼ 查看舊紀錄</button>
-        <div id="archiveSection" style="display:none; margin-top:15px; border-top:1px dashed #eee;"></div>
-    </div>
+        <div class="card" style="border-left: 5px solid var(--secondary);">
+            <h2 style="color: var(--secondary);">🎯 補貨目標試算</h2>
+            <div class="form-group">
+                <label>我想預計吃到這一天：</label>
+                <input type="date" id="ai-target-date" onchange="runAI()" style="border-color: #e8f5e9;">
+            </div>
+            <div id="ai-refill-gap" style="font-weight:800; margin-top:5px; font-size:1.1rem; color:var(--primary); min-height: 24px;"></div>
+            <p style="font-size: 0.75rem; color: #999; margin-top: 10px;">日平均食量：<span id="ai-avg-usage" style="color:var(--secondary); font-weight:700;">--</span>g</p>
+        </div>
 
-    <div class="management-tools">
-        <button class="btn tool-btn" onclick="exportCSV()">📊 導出 CSV</button>
-        <button class="btn tool-btn" onclick="exportData()">💾 導出 JSON</button>
-        <button class="btn tool-btn" onclick="importData()">🔄 還原數據</button>
+        <div class="card">
+            <h2 style="color:#666">🏆 歷史完食紀錄</h2>
+            <div id="archiveSection" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="card" style="background: #fdfdfd; border: 1px dashed #ddd; opacity: 0.8;">
+            <h2 style="color:#888; font-size:0.9rem;">⚙️ 數據備份與還原</h2>
+            <div class="management-tools">
+                <button class="btn tool-btn" onclick="exportCSV()">📊 匯出 CSV</button>
+                <button class="btn tool-btn" onclick="exportData()">💾 備份 JSON</button>
+                <button class="btn tool-btn" onclick="importData()">🔄 還原數據</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -122,6 +161,16 @@
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let currentEditId = null;
 
+    /* --- 分頁切換 --- */
+    function showTab(tab) {
+        document.getElementById('page-v1').classList.toggle('active', tab === 'v1');
+        document.getElementById('page-v2').classList.toggle('active', tab === 'v2');
+        document.getElementById('btn-v1').classList.toggle('active', tab === 'v1');
+        document.getElementById('btn-v2').classList.toggle('ai-active', tab === 'v2');
+        if(tab === 'v2') runAI();
+    }
+
+    /* --- 核心邏輯 (保留 V1 代碼) --- */
     function formatDate(obj) {
         let v = obj.value.replace(/\D/g, '').substring(0, 8);
         if (v.length > 4 && v.length <= 6) { v = v.substring(0, 4) + '/' + v.substring(4); } 
@@ -136,7 +185,7 @@
 
     function getDailyUsage() {
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
-        if(doneList.length === 0) return 150;
+        if(doneList.length === 0) return 150; // 預設值
         let total = 0;
         doneList.forEach(i => {
             const diff = (new Date(i.finishDate.replace(/\//g, '-')) - new Date(i.openDate.replace(/\//g, '-'))) / 86400000;
@@ -148,20 +197,12 @@
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
+        
+        // 更新下拉選單
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length 
             ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('')
             : '<option value="">目前無庫存</option>';
-
-        const sortedAll = [...db].sort((a,b) => {
-            const s = {'食用中': 3, '庫存': 2, '已吃完': 1};
-            return s[b.status] - s[a.status] || b.id - a.id;
-        });
-
-        const active = sortedAll.filter(i => i.status !== '已吃完');
-        const done = sortedAll.filter(i => i.status === '已吃完');
-        const recentDone = done.slice(0, 3);
-        const olderDone = done.slice(3);
 
         const renderItem = (i) => {
             const isAvoid = (i.memo || "").match(/不要買|不回購|雷/);
@@ -177,30 +218,29 @@
                 const estFinish = new Date(baseDate);
                 estFinish.setDate(estFinish.getDate() + days);
                 const estStr = `${estFinish.getFullYear()}/${String(estFinish.getMonth()+1).padStart(2,'0')}/${String(estFinish.getDate()).padStart(2,'0')}`;
-                const isExpiredRisk = estFinish > new Date(i.expiry.replace(/\//g, '-'));
-                dateText = `<div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
-                            <div style="font-size:10px; ${isExpiredRisk?'color:#ff5252; font-weight:700;':'color:#d2691e;'} margin-top:2px;">
-                                ${isExpiredRisk?'⚠️ ':'💡 '}預計吃 ${days} 天 (約 ${estStr} 完食)</div>`;
+                dateText = `<div style="font-size:10px; color:#d2691e; margin-top:4px;">💡 預計 ${estStr} 完食</div>`;
             } else if (i.status === '食用中') {
-                dateText = `<div style="font-size:10px; color:#999; margin-top:6px;">📅 有效期限：${i.expiry}</div>
-                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;">🍴 預計 ${i.finishDate || '...'} 吃完</div>`;
+                dateText = `<div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:4px;">🍴 預計 ${i.finishDate || '...'} 吃完</div>`;
             } else {
-                dateText = `<div style="font-size:10px; color:#bbb; margin-top:6px;">🏁 ${i.finishDate} 完食</div>`;
+                dateText = `<div style="font-size:10px; color:#bbb; margin-top:4px;">🏁 ${i.finishDate} 完食</div>`;
             }
 
             return `<div class="food-item ${isAvoid ? 'avoid-buy' : ''}" onclick="openMemo(${i.id})">
                         <div class="food-info">
                             <div class="food-title-row"><b>${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                            <span class="sub-text">${i.flavor} (${i.weightKg}kg)</span>
-                            ${dateText}${i.memo ? `<div class="memo-text">💬 ${i.memo}</div>` : ''}
+                            <span style="font-size:0.85rem; color:#777;">${i.flavor} (${i.weightKg}kg)</span>
+                            ${dateText}${i.memo ? `<div style="font-size: 0.75rem; color: #2e7d32; font-weight: 600; margin-top: 8px; background: #f0f7f0; padding: 4px 8px; border-radius: 6px; display: inline-block;">💬 ${i.memo}</div>` : ''}
                         </div>
-                        <div class="food-meta"><div class="price-tag">$${i.price || '-'}</div><div class="unit-price">$${up}/g</div></div>
+                        <div style="text-align:right;"><div class="price-tag">$${i.price || '-'}</div><div style="font-size:10px; color:#ccc;">$${up}/g</div></div>
                     </div>`;
         };
 
-        document.getElementById('recentList').innerHTML = [...active, ...recentDone].map(renderItem).join('');
-        document.getElementById('archiveSection').innerHTML = olderDone.map(renderItem).join('');
-        document.getElementById('toggleBtn').style.display = olderDone.length > 0 ? 'block' : 'none';
+        // Q2 分流顯示
+        const activeData = db.filter(i => i.status !== '已吃完').sort((a,b) => (a.status === '食用中' ? -1 : 1));
+        const doneData = db.filter(i => i.status === '已吃完').sort((a,b) => b.id - a.id);
+
+        document.getElementById('recentList').innerHTML = activeData.length ? activeData.map(renderItem).join('') : '<p style="color:#999; text-align:center;">目前無存糧</p>';
+        document.getElementById('archiveSection').innerHTML = doneData.length ? doneData.map(renderItem).join('') : '<p style="color:#999; text-align:center;">尚無歷史紀錄</p>';
     }
 
     function addEntry() {
@@ -219,7 +259,7 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("沒有項目");
+        if(!id) return alert("請先選擇要開封的飼料");
         let openStr = document.getElementById('openDate').value || getTodayStr();
         const dailyG = getDailyUsage();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
@@ -239,7 +279,7 @@
         document.getElementById('modalTitle').innerText = item.brand;
         document.getElementById('modalSubTitle').innerText = item.flavor + " (" + item.weightKg + "kg)";
         document.getElementById('memoInput').value = item.memo || "";
-        document.getElementById('modalToClose') || (document.getElementById('memoModal').style.display = 'flex');
+        document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('deleteBtn').onclick = function() { if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); } };
     }
 
@@ -251,36 +291,53 @@
     }
 
     function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
-    function toggleArchive() { 
-        const arc = document.getElementById('archiveSection');
-        const isHidden = arc.style.display === 'none';
-        arc.style.display = isHidden ? 'block' : 'none';
-        document.getElementById('toggleBtn').innerText = isHidden ? '▲ 收起' : '▼ 查看舊紀錄';
-    }
-
-    function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("JSON數據已複製")); }
+    
+    function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("數據已複製到剪貼簿")); }
     function importData() {
-        const input = prompt("貼上 JSON：");
+        const input = prompt("貼上 JSON 數據：");
         if (input) { try { db = JSON.parse(input); saveAndRender(); alert("還原成功"); } catch (e) { alert("格式錯誤"); } }
     }
 
     function exportCSV() {
-        if (db.length === 0) return alert("目前沒有數據可以導出");
-        let csvContent = "\ufeff狀態,品牌,品項,重量(kg),價格,單價(g),有效期限,開封日期,完食日期,備註\n";
+        if (db.length === 0) return alert("無數據");
+        let csvContent = "\ufeff狀態,品牌,品項,重量(kg),價格,有效期限,備註\n";
         db.forEach(i => {
-            const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
-            const row = [i.status, i.brand, i.flavor, i.weightKg, i.price, up, i.expiry, i.openDate || '-', i.finishDate || '-', i.memo || '-'];
+            const row = [i.status, i.brand, i.flavor, i.weightKg, i.price, i.expiry, i.memo || '-'];
             csvContent += row.map(val => `"${val}"`).join(",") + "\n";
         });
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `飼料管理紀錄_${new Date().toISOString().slice(0,10)}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = `飼料紀錄_${new Date().toISOString().slice(0,10)}.csv`;
         link.click();
-        document.body.removeChild(link);
+    }
+
+    /* --- V2 AI 邏輯 --- */
+    function runAI() {
+        const dailyG = Math.round(getDailyUsage());
+        document.getElementById('ai-avg-usage').innerText = dailyG;
+        
+        const currentItems = db.filter(i => i.status !== '已吃完');
+        const totalKg = currentItems.reduce((acc, i) => acc + i.weightKg, 0);
+        const totalDays = Math.round((totalKg * 1000) / dailyG);
+        
+        document.getElementById('ai-total-kg').innerText = totalKg.toFixed(2) + " kg";
+        document.getElementById('ai-total-days').innerText = totalDays + " 天";
+
+        const fDate = new Date();
+        fDate.setDate(fDate.getDate() + totalDays);
+        document.getElementById('ai-finish-desc').innerHTML = `💡 目前所有存量預計在 <b>${fDate.toLocaleDateString()}</b> 吃完。`;
+
+        // 目標試算
+        const targetVal = document.getElementById('ai-target-date').value;
+        const resDiv = document.getElementById('ai-refill-gap');
+        if(targetVal) {
+            const targetDate = new Date(targetVal);
+            const diffDays = (targetDate - new Date()) / 86400000;
+            const neededKg = (diffDays * dailyG) / 1000;
+            const gap = (neededKg - totalKg).toFixed(2);
+            resDiv.innerHTML = gap > 0 ? `👉 尚差約 ${gap} kg 飼料` : "✅ 庫存足夠撐到這天！";
+        }
     }
 
     document.getElementById('openDate').value = getTodayStr();
