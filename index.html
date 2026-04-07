@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>飼料智慧管家 Pro</title>
+    <title>飼料管理</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff;
@@ -46,7 +46,7 @@
         .v2-card { position: relative; padding: 35px 22px 22px !important; overflow: hidden; background: var(--card-v2) !important; border: 1px solid var(--border-v2) !important; border-radius: 20px; margin-bottom: 20px; color: var(--text-v2); }
         .v2-tag { position: absolute; top: 0; left: 0; background: var(--ai-yellow); color: #000; padding: 4px 12px; font-size: 10px; font-weight: 900; border-bottom-right-radius: 12px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 列表與狀態對齊修正 */
+        /* 列表與對齊修正 */
         .food-item { border-bottom: 1px solid #f5f5f5; padding: 16px 4px; display: flex; justify-content: space-between; align-items: center; }
         .v2-active .food-item { border-bottom-color: var(--border-v2); }
         
@@ -64,6 +64,9 @@
 
         .management-tools { display: flex; justify-content: center; gap: 8px; }
         .tool-btn { flex: 1; text-align: center; padding: 10px; font-size: 11px; border-radius: 10px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); border: 1px solid var(--border-v2); font-weight: 700; cursor: pointer; }
+
+        /* 展開按鈕 */
+        .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 15px; cursor: pointer; font-weight: 700; }
 
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; color: #333; }
@@ -168,6 +171,7 @@
 <script>
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let currentEditId = null;
+    let isArchiveExpanded = false; // 控制封存摺疊狀態
 
     function showTab(tab) {
         document.getElementById('page-v1').classList.toggle('active', tab === 'v1');
@@ -176,6 +180,11 @@
         document.getElementById('btn-v2').classList.toggle('ai-active', tab === 'v2');
         document.getElementById('main-body').classList.toggle('v2-active', tab === 'v2');
         if(tab === 'v2') runAI();
+    }
+
+    function toggleArchive() {
+        isArchiveExpanded = !isArchiveExpanded;
+        saveAndRender();
     }
 
     function formatDate(obj) {
@@ -201,11 +210,11 @@
         return total / doneList.length;
     }
 
-
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
         
+        // 待開封清單：顯示品牌 + 口味
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length 
             ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('')
@@ -217,24 +226,14 @@
             let dateText = '';
             
             if (i.status === '庫存') {
-                // 計算這包預計可以吃幾天
                 const days = Math.round((i.weightKg * 1000) / dailyG);
-                
-                // 找出目前「食用中」的那包什麼時候會吃完，作為這包的開始日期
                 const eatingItem = db.find(item => item.status === '食用中');
                 let baseDate = new Date();
-                if (eatingItem && eatingItem.finishDate) {
-                    baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
-                }
-                
+                if (eatingItem && eatingItem.finishDate) baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
                 const estFinish = new Date(baseDate);
                 estFinish.setDate(estFinish.getDate() + days);
                 const estStr = `${estFinish.getFullYear()}/${String(estFinish.getMonth()+1).padStart(2,'0')}/${String(estFinish.getDate()).padStart(2,'0')}`;
-                
-                // 過期風險檢查
                 const isExpiredRisk = estFinish > new Date(i.expiry.replace(/\//g, '-'));
-                
-                // 恢復 V1 文字邏輯：顯示天數 + 完食日期
                 dateText = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期限：${i.expiry}</div>
                             <div style="font-size:10px; ${isExpiredRisk?'color:#ff5252; font-weight:700;':'color:#d2691e;'} margin-top:2px;">
                                 ${isExpiredRisk?'⚠️ ':'💡 '}預計吃 ${days} 天 (約 ${estStr} 完食)</div>`;
@@ -247,9 +246,9 @@
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
                         <div style="flex:1; padding-right:10px;">
-                            <div class="item-info-header" style="display: flex; align-items: center; gap: 8px;">
+                            <div class="item-info-header">
                                 <b style="font-size: 1rem; line-height: 1;">${i.brand}</b>
-                                <span class="status-badge ${statusClass}" style="transform: translateY(0px);">${i.status}</span>
+                                <span class="status-badge ${statusClass}">${i.status}</span>
                             </div>
                             <div style="font-size:0.85rem; color:#777; margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
                             ${dateText}
@@ -262,10 +261,21 @@
                     </div>`;
         };
 
+        // Q1: V1 目前狀態顯示所有「食用中」與「庫存」
         document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="color:#999; font-size:12px; text-align:center; padding:20px;">目前沒有活躍中的飼料</div>';
-        document.getElementById('archiveList').innerHTML = db.filter(i => i.status === '已吃完').map(renderItem).join('') || '<div style="color:#666; font-size:12px; text-align:center; padding:20px;">暫無完食紀錄</div>';
-    }
 
+        // Q2: Archive 排序（最新在前）與摺疊功能
+        const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')));
+        const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
+        let archiveHTML = displayDone.map(renderItem).join('');
+        
+        if (allDone.length > 5) {
+            archiveHTML += `<button class="expand-btn" onclick="toggleArchive()">
+                                ${isArchiveExpanded ? '▲ 收合舊紀錄' : `▼ 展開其餘 ${allDone.length - 5} 筆紀錄`}
+                            </button>`;
+        }
+        document.getElementById('archiveList').innerHTML = archiveHTML || '<div style="color:#666; font-size:12px; text-align:center; padding:20px;">暫無完食紀錄</div>';
+    }
 
     function addEntry() {
         const brand = document.getElementById('brand').value.trim();
