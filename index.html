@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>飼料智慧管家 Pro (Wide-View Edition)</title>
+    <title>飼料智慧</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -52,22 +52,11 @@
         .bg-done { background-color: rgba(255,255,255,0.05); color: #888; }
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
         
-        #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
-        .modal-content { background:white; padding:25px; border-radius:24px 24px 0 0; width:100%; max-width:500px; color: #333; animation: slideUp 0.3s ease; }
+        #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
+        .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:400px; color: #333; }
         .v2-active .modal-content { background: var(--card-v2); color: #fff; }
-        
-        /* 核心修正：加大備份/備註輸入框 */
-        .modal-content textarea { 
-            min-height: 500px; 
-            font-family: 'Courier New', Courier, monospace; 
-            font-size: 13px; 
-            margin-top: 10px; 
-            line-height: 1.5; 
-            white-space: pre;
-            overflow-x: auto;
-        }
-
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* 備份輸入框高度調整 */
+        .modal-content textarea { min-height: 350px; font-family: monospace; font-size: 13px; margin-top: 10px; line-height: 1.4; }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
     </style>
@@ -75,16 +64,12 @@
 <body id="main-body">
 
 <div id="memoModal"><div class="modal-content">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h3 id="modalTitle" style="margin:0;">編輯</h3>
-            <p id="modalSubTitle" style="font-size:0.8rem; color:#999; margin:5px 0;"></p>
-        </div>
-        <button onclick="closeModal()" style="background:none; border:none; font-size:24px; color:#999;">✕</button>
-    </div>
+    <h3 id="modalTitle" style="margin:0;">編輯</h3>
+    <p id="modalSubTitle" style="font-size:0.8rem; color:#999; margin:5px 0;"></p>
     <textarea id="memoInput" placeholder="在此貼上備份數據或紀錄備註..."></textarea>
-    <button id="modalSaveBtn" class="btn btn-primary" style="margin-top:15px;">確認儲存</button>
-    <button id="deleteBtn" style="background:none; border:none; color:var(--danger); width:100%; margin-top:15px; font-size:13px; cursor:pointer; font-weight:600;">🗑 刪除此紀錄</button>
+    <button id="modalSaveBtn" class="btn btn-primary" style="margin-top:15px;">儲存變更</button>
+    <button class="btn" style="background:#eee; margin-top:8px; color:#333;" onclick="closeModal()">取消</button>
+    <button id="deleteBtn" style="background:none; border:none; color:var(--danger); width:100%; margin-top:10px; font-size:12px; cursor:pointer;">🗑 刪除此項紀錄</button>
 </div></div>
 
 <nav class="nav-tabs">
@@ -94,7 +79,7 @@
 
 <div class="container">
     <div id="page-v1" class="tab-page active">
-        <h1>🐾 庫存管理</h1>
+        <h1>INVENTORY LOG</h1>
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -121,7 +106,7 @@
     </div>
 
     <div id="page-v2" class="tab-page">
-        <h1>🤖 AI 智慧監測</h1>
+        <h1>ANALYTICS</h1>
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Storage Status</div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -146,7 +131,7 @@
             <div class="tag-sticker v2-tag">Refill Planner</div>
             <label>設定目標日期</label>
             <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center;">
-            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">輸入日期以計算缺口</div>
+            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">PENDING</div>
         </div>
         <div class="v2-card"><div class="tag-sticker v2-tag">Archive</div><div id="archiveList"></div></div>
         <div class="v2-card">
@@ -215,32 +200,38 @@
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
             stocks.map(i => `<option value="${i.id}">${i.brand} - ${i.expiry}</option>`).join('') : 
-            '<option value="">無庫存項目</option>';
+            '<option value="">無庫存</option>';
         
         const renderItem = (i) => {
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
+            // 安全檢查：完食日是否晚於有效期限
+            const isExpiredRisk = (i.status !== '已吃完' && i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-')));
+            const warningIcon = isExpiredRisk ? '⚠️ ' : '';
+            const warningClass = isExpiredRisk ? 'warning-text' : '';
+
             let dateInfo = '';
             if (i.status === '庫存') {
                 const days = Math.round((i.weightKg * 1000) / dailyG);
                 const estFinish = calculateFutureFinish(days);
-                const isRisk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
+                // 更新物件的 finishDate 供警告邏輯判斷
+                i.finishDate = estFinish; 
+                const risk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `
                     <div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                    <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">
-                        ${isRisk?'⚠️ ':''}💡 預計吃 ${days} 天 | 🏁 完食：${estFinish}
+                    <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${risk?'warning-text':''}">
+                        ${risk?'⚠️ ':''}💡 預計吃 ${days} 天 | 🏁 預計完食：${estFinish}
                     </div>`;
             } else if (i.status === '食用中') {
-                const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `
                     <div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                    <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">
-                        ${isRisk?'⚠️ ':''}🍴 剩餘約 ${currentWeight.toFixed(2)}kg | 🏁 完食：${i.finishDate}
+                    <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${warningClass}">
+                        ${warningIcon}🍴 剩餘約 ${currentWeight.toFixed(2)}kg | 🏁 預計完食：${i.finishDate}
                     </div>`;
             } else {
-                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁 已完食於：${i.finishDate}</div>`;
+                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁 完食日期：${i.finishDate}</div>`;
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
@@ -262,7 +253,7 @@
         const brand = document.getElementById('brand').value.trim();
         const weight = parseFloat(document.getElementById('weight').value);
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || expiry.length < 10) return alert("請填寫完整資訊");
+        if(!brand || isNaN(weight) || expiry.length < 10) return alert("請填寫品牌、重量與有效期");
         const weightKg = (document.getElementById('unit').value === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor: document.getElementById('flavor').value.trim(), weightKg: parseFloat(weightKg), price: document.getElementById('price').value||0, expiry, status: '庫存', memo: "" });
         saveAndRender();
@@ -271,7 +262,7 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("請選擇庫存");
+        if(!id) return alert("請選擇要開封的項目");
         let openStr = document.getElementById('openDate').value || getTodayStr();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
@@ -286,7 +277,7 @@
     function openMemo(id) {
         const item = db.find(i => i.id == id);
         document.getElementById('modalTitle').innerText = item.brand;
-        document.getElementById('modalSubTitle').innerText = item.flavor || "數據備份與備註";
+        document.getElementById('modalSubTitle').innerText = item.flavor || "備註與備份";
         document.getElementById('memoInput').value = item.memo || "";
         document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('modalSaveBtn').onclick = function() {
@@ -318,8 +309,8 @@
 
     function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("✅ JSON 已複製")); }
     function importData() {
-        const input = prompt("請貼上 JSON：");
-        if(input) { try { db = JSON.parse(input); saveAndRender(); alert("還原成功"); } catch(e) { alert("解析失敗"); } }
+        const input = prompt("貼上 JSON 數據：");
+        if(input) { try { db = JSON.parse(input); saveAndRender(); alert("還原成功"); } catch(e) { alert("失敗"); } }
     }
     function exportCSV() {
         let csv = "\ufeff狀態,品牌,品項,重量(kg),價格,有效期限\n";
