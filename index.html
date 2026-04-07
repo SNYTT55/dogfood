@@ -31,14 +31,14 @@
         .container { max-width: 500px; margin: auto; }
         h1 { font-size: 1.4rem; color: var(--primary); margin: 15px 0 25px; text-align: center; font-weight: 800; }
 
-        /* 通用標籤貼紙基礎樣式 */
+        /* 標籤貼紙樣式 */
         .tag-sticker { 
             position: absolute; top: 0; left: 0; 
             padding: 4px 12px; font-size: 10px; font-weight: 900; 
             border-bottom-right-radius: 12px; text-transform: uppercase; letter-spacing: 1px; 
         }
 
-        /* V1 樣式：保留原本配色 */
+        /* V1 卡片與標籤 */
         .v1-card { 
             position: relative; padding: 38px 22px 22px !important; 
             border-radius: 20px; margin-bottom: 20px; 
@@ -46,7 +46,7 @@
         }
         .v1-tag { background: var(--primary); color: #fff; }
 
-        /* V2 樣式：保留原本深色配色 */
+        /* V2 卡片與標籤 */
         .v2-card { 
             position: relative; padding: 38px 22px 22px !important; 
             background: var(--card-v2) !important; border: 1px solid var(--border-v2) !important; 
@@ -54,30 +54,33 @@
         }
         .v2-tag { background: var(--ai-yellow); color: #000; }
 
-        /* 表單與清單樣式 */
+        /* 通用表單 */
         label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #888; }
         input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 12px; font-size: 16px; border: 1.5px solid #f0f0f0; background: #fafafa; color: #333; }
-        .v2-active input, .v2-active select { background: rgba(0,0,0,0.2); border-color: var(--border-v2); color: #fff; }
         
+        /* 彈窗內的大框框特規 (只有這裡變大) */
+        .modal-content textarea { min-height: 250px; font-family: monospace; font-size: 14px; background: #f9f9f9; line-height: 1.6; }
+        .v2-active .modal-content textarea { background: rgba(0,0,0,0.3) !important; color: #fff !important; border-color: var(--border-v2) !important; }
+
         .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
 
+        /* 列表與其他 */
         .food-item { border-bottom: 1px solid #f5f5f5; padding: 16px 4px; display: flex; justify-content: space-between; align-items: center; }
         .v2-active .food-item { border-bottom-color: var(--border-v2); }
-        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; height: 18px; }
+        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; height: 18px; }
         .bg-eating { background-color: #e8f5e9; color: #2e7d32; }
         .bg-stock { background-color: #e3f2fd; color: #1976d2; }
         .bg-done { background-color: rgba(255,255,255,0.05); color: #888; }
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
-
         .dashboard-grid { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 10px; }
         .refill-calculator { background: rgba(251, 192, 45, 0.05); border-radius: 15px; padding: 15px; margin-top: 15px; border: 1px dashed rgba(251, 192, 45, 0.3); }
         .management-tools { display: flex; justify-content: center; gap: 8px; }
-        .tool-btn { flex: 1; text-align: center; padding: 10px; font-size: 11px; border-radius: 10px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); border: 1px solid var(--border-v2); font-weight: 700; }
+        .tool-btn { flex: 1; text-align: center; padding: 10px; font-size: 11px; border-radius: 10px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); border: 1px solid var(--border-v2); font-weight: 700; cursor: pointer; }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 15px; cursor: pointer; font-weight: 700; }
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(4px); }
-        .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; }
+        .modal-content { background:white; padding:25px; border-radius:24px; width:90%; max-width:380px; color:#333; }
     </style>
 </head>
 <body id="main-body">
@@ -86,7 +89,7 @@
     <h3 id="modalTitle" style="margin-top:0;">編輯心得</h3>
     <p id="modalSubTitle" style="font-size:0.8rem; color:#999;"></p>
     <textarea id="memoInput" rows="4" style="margin-top:10px;"></textarea>
-    <button class="btn btn-primary" style="margin-top:15px;" onclick="saveMemo()">儲存</button>
+    <button id="modalSaveBtn" class="btn btn-primary" style="margin-top:15px;" onclick="saveMemo()">儲存</button>
     <button class="btn" style="background:#eee; margin-top:8px;" onclick="closeModal()">取消</button>
     <button id="deleteBtn" style="background:none; border:none; color:#ff5252; width:100%; margin-top:10px; font-size:12px;">🗑 刪除紀錄</button>
 </div></div>
@@ -128,7 +131,6 @@
 
     <div id="page-v2" class="tab-page">
         <h1>CORE INTELLIGENCE</h1>
-        
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Storage Status</div>
             <div class="dashboard-grid">
@@ -176,7 +178,6 @@
 </div>
 
 <script>
-    // JS 邏輯保持不變 ... (略)
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let currentEditId = null;
     let isArchiveExpanded = false;
@@ -190,17 +191,18 @@
         if(tab === 'v2') runAI();
     }
 
-    function toggleArchive() { isArchiveExpanded = !isArchiveExpanded; saveAndRender(); }
     function formatDate(obj) {
         let v = obj.value.replace(/\D/g, '').substring(0, 8);
         if (v.length > 4 && v.length <= 6) v = v.substring(0, 4) + '/' + v.substring(4);
         else if (v.length > 6) v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6);
         obj.value = v;
     }
+
     function getTodayStr() {
         const d = new Date();
         return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
     }
+
     function getDailyUsage() {
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
         if(doneList.length === 0) return 150;
@@ -216,35 +218,24 @@
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
-        document.getElementById('stockSelect').innerHTML = stocks.length 
-            ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('')
-            : '<option value="">目前無庫存</option>';
-
+        document.getElementById('stockSelect').innerHTML = stocks.length ? stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand} - ${i.flavor}</option>`).join('') : '<option value="">目前無庫存</option>';
+        
         const renderItem = (i) => {
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
-            let dateText = i.status === '已吃完' ? `🏁 於 ${i.finishDate} 已完食` : `📅 有效期限：${i.expiry}`;
             return `<div class="food-item" onclick="openMemo(${i.id})">
-                        <div style="flex:1;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <b style="font-size: 1rem;">${i.brand}</b>
-                                <span class="status-badge ${statusClass}">${i.status}</span>
-                            </div>
-                            <div style="font-size:0.85rem; color:#777; margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
-                            <div style="font-size:10px; color:#999; margin-top:4px;">${dateText}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="price-tag">$${i.price || '-'}</div>
-                            <span style="font-size:10px; color:#bbb;">$${up}/g</span>
-                        </div>
-                    </div>`;
+                <div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
+                <div style="font-size:0.85rem;color:#777;margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
+                <div style="font-size:10px;color:#999;margin-top:4px;">${i.status==='已吃完'?'🏁 已完食':'📅 有效期限：'+i.expiry}</div></div>
+                <div style="text-align:right;"><div class="price-tag">$${i.price||'-'}</div><span style="font-size:10px;color:#bbb;">$${up}/g</span></div></div>`;
         };
-        document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="color:#999; font-size:12px; text-align:center; padding:20px;">NO ACTIVE ITEMS</div>';
+
+        document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="color:#999;font-size:12px;text-align:center;padding:20px;">NO ACTIVE ITEMS</div>';
         const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')));
         const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
         let archiveHTML = displayDone.map(renderItem).join('');
-        if (allDone.length > 5) archiveHTML += `<button class="expand-btn" onclick="toggleArchive()">${isArchiveExpanded ? '▲ 收合' : `▼ 展開其餘 ${allDone.length-5} 筆`}</button>`;
-        document.getElementById('archiveList').innerHTML = archiveHTML || '<div style="color:#666; font-size:12px; text-align:center; padding:20px;">EMPTY</div>';
+        if (allDone.length > 5) archiveHTML += `<button class="expand-btn" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開'}</button>`;
+        document.getElementById('archiveList').innerHTML = archiveHTML || '<div style="color:#666;font-size:12px;text-align:center;padding:20px;">EMPTY</div>';
     }
 
     function addEntry() {
@@ -282,10 +273,31 @@
         document.getElementById('modalSubTitle').innerText = item.flavor;
         document.getElementById('memoInput').value = item.memo || "";
         document.getElementById('memoModal').style.display = 'flex';
+        document.getElementById('deleteBtn').style.display = 'block';
+        document.getElementById('modalSaveBtn').innerText = "儲存";
+        document.getElementById('modalSaveBtn').onclick = saveMemo;
         document.getElementById('deleteBtn').onclick = function() { if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); } };
     }
+
     function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
     function saveMemo() { db.find(i => i.id == currentEditId).memo = document.getElementById('memoInput').value; closeModal(); saveAndRender(); }
+
+    function importData() {
+        document.getElementById('modalTitle').innerText = "數據還原 (JSON)";
+        document.getElementById('modalSubTitle').innerText = "請在此貼上 JSON 代碼：";
+        const memoBox = document.getElementById('memoInput');
+        memoBox.value = "";
+        document.getElementById('memoModal').style.display = 'flex';
+        document.getElementById('deleteBtn').style.display = 'none';
+        const saveBtn = document.getElementById('modalSaveBtn');
+        saveBtn.innerText = "確認還原";
+        saveBtn.onclick = function() {
+            try {
+                const data = JSON.parse(memoBox.value);
+                if(Array.isArray(data)) { db = data; saveAndRender(); closeModal(); alert("✅ 還原成功！"); }
+            } catch(e) { alert("解析失敗！"); }
+        };
+    }
 
     function runAI() {
         const dailyG = Math.round(getDailyUsage());
@@ -305,7 +317,6 @@
     }
 
     function exportData() { navigator.clipboard.writeText(JSON.stringify(db)).then(() => alert("JSON 已複製")); }
-    function importData() { const input = prompt("貼上 JSON："); if(input) { db = JSON.parse(input); saveAndRender(); } }
     function exportCSV() {
         let csv = "\ufeff狀態,品牌,品項,重量(kg),價格,有效期限\n";
         db.forEach(i => csv += `"${i.status}","${i.brand}","${i.flavor}","${i.weightKg}","${i.price}","${i.expiry}"\n`);
