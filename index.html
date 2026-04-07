@@ -318,8 +318,7 @@ function updateAIRecommendation() {
 
     document.getElementById('ai-rec-content').innerHTML = `
     <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-        <span style="font-size: 16px; font-weight: 800; color: var(--text-v1);">${best.item.brand}</span>
-        <span style="font-size: 14px; font-weight: 600; color: #666;">${best.item.flavor}</span>
+        <span style="font-size: 16px; font-weight: 800; color: var(--text-v1);">${best.item.brand}/${best.item.flavor}</span>
         <span style="font-size: 10px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 700;">
             ${best.group}
         </span>
