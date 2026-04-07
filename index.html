@@ -54,37 +54,12 @@
         .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
         
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
-        .modal-content textarea {
-    /* 1. 調整高度：不要寫死 480px，改用螢幕高度的佔比 */
-    height: 45vh;              /* vh 是螢幕高度單位，45vh 大約是半個螢幕 */
-    min-height: 300px;         /* 設定一個最小保底高度 */
-    
-    /* 2. 寬度與比例 */
-    width: 100%;
-    padding: 16px;
-    margin-top: 12px;
-    
-    /* 3. 字體與行高：維持適中，不要太稀疏 */
-    font-size: 14px;           /* 稍微調大一點點，增加份量感 */
-    line-height: 1.4;          /* 1.4 是最紮實好讀的比例 */
-    
-    /* 4. 外觀細節 */
-    border-radius: 14px;
-    border: 1.5px solid #eee;
-    background: #fafafa;
-    box-sizing: border-box;    /* 確保 padding 不會撐破寬度 */
-    
-    /* 5. 滾動與換行 */
-    white-space: pre-wrap;     /* 自動換行，避免出現橫向捲軸讓框看起來更瘦 */
-    overflow-y: auto;
-}
 
-/* 深色模式修正 */
-.v2-active .modal-content textarea {
-    background: rgba(255,255,255,0.03) !important;
-    border-color: var(--border-v2) !important;
-    color: #eee !important;
-}
+        .modal-content { background:white; padding:25px; border-radius:24px 24px 0 0; width:100%; max-width:500px; color: #333; animation: slideUp 0.3s ease; }
+
+        .v2-active .modal-content { background: var(--card-v2); color: #fff; }
+
+        .modal-content textarea { min-height: 480px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
