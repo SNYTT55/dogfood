@@ -4,7 +4,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 旗艦版</title>
+    <title>Samy管家 - 收納版</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f8f9fa; --text: #333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -20,22 +20,27 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
         
-        /* 狀態標籤 */
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; margin-left: 5px; vertical-align: middle; }
-        .bg-eating { background-color: #2e7d32 !important; color: #ffffff !important; border: 1.5px solid #1b5e20; }
+        /* --- ✨ 狀態列優化：不換行設計 --- */
+        .food-item { border-bottom: 1px solid #f0f0f0; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .food-info { flex: 1; min-width: 0; } /* 防止推擠 */
+        .food-title-row { display: flex; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+        .food-info b { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .status-badge { padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; margin-left: 6px; flex-shrink: 0; }
+        
+        .bg-eating { background-color: #2e7d32 !important; color: #ffffff !important; border: 1.2px solid #1b5e20; }
         .bg-stock { background-color: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
         .bg-done { background-color: #f5f5f5; color: #9e9e9e; border: 1px solid #e0e0e0; }
 
-        .food-item { border-bottom: 1px solid #f0f0f0; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .food-info b { display: block; font-size: 1rem; margin-bottom: 4px; }
-        .food-info span { font-size: 0.85rem; color: #888; display: block; }
-        .food-prediction { font-size: 11px; color: #d2691e; font-weight: 600; margin-top: 4px; }
-        .food-meta { text-align: right; min-width: 85px; }
-        .price-tag { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
-        .unit-price { font-size: 11px; color: #999; margin-top: 2px; }
-        .date-info { font-size: 10px; color: #bbb; margin-top: 4px; }
+        .sub-text { font-size: 0.8rem; color: #888; display: block; margin-top: 2px; }
+        .food-prediction { font-size: 10px; color: #d2691e; font-weight: 600; margin-top: 2px; }
+        .food-meta { text-align: right; flex-shrink: 0; }
+        .price-tag { font-weight: bold; color: var(--primary); font-size: 1rem; }
+        .unit-price { font-size: 10px; color: #999; }
+        .date-info { font-size: 10px; color: #bbb; margin-top: 2px; }
         
-        .highlight-box { background: #fffde7; border: 1px solid #fff59d; padding: 15px; border-radius: 12px; margin-top: 15px; font-size: 0.9rem; line-height: 1.5; }
+        /* 歷史收納箱按鈕 */
+        .toggle-btn { background: #eee; border: none; color: #777; padding: 10px; width: 100%; border-radius: 8px; font-size: 12px; margin-top: 10px; cursor: pointer; }
+        #archiveSection { display: none; margin-top: 10px; border-top: 1px dashed #ccc; }
     </style>
 </head>
 <body>
@@ -44,34 +49,38 @@
     <h1>🐾 Samy管家</h1>
 
     <div class="card">
-        <h2>📦 新購飼料入庫</h2>
-        <div class="form-group"><label>品牌</label><input type="text" id="brand" placeholder="例如：好市多"></div>
-        <div class="form-group"><label>品項 (口味)</label><input type="text" id="flavor" placeholder="例如：鮭魚 & 甘薯"></div>
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 2;"><label>重量</label><div style="display: flex; gap: 5px;"><input type="number" id="weight" step="0.01"><select id="unit" style="width: 70px;"><option value="kg">kg</option><option value="lb">lb</option></select></div></div>
-            <div style="flex: 1.5;"><label>價格</label><input type="number" id="price" placeholder="NTD"></div>
+        <h2>📦 新購入庫</h2>
+        <div style="display: flex; gap: 8px;">
+            <div style="flex:1"><label>品牌</label><input type="text" id="brand"></div>
+            <div style="flex:1"><label>品項</label><input type="text" id="flavor"></div>
         </div>
-        <div class="form-group"><label>有效期限</label><input type="date" id="expiry"></div>
-        <button class="btn btn-primary" onclick="addEntry()">加入庫存清單</button>
+        <div style="display: flex; gap: 8px; margin-top:10px;">
+            <div style="flex: 2;"><label>重量</label><div style="display: flex; gap: 5px;"><input type="number" id="weight" step="0.01"><select id="unit" style="width: 65px;"><option value="kg">kg</option><option value="lb">lb</option></select></div></div>
+            <div style="flex: 1.5;"><label>價格</label><input type="number" id="price"></div>
+        </div>
+        <div class="form-group" style="margin-top:10px;"><label>效期</label><input type="date" id="expiry"></div>
+        <button class="btn btn-primary" onclick="addEntry()">加入清單</button>
     </div>
 
     <div class="card">
         <h2>🍴 開封管理</h2>
-        <div class="form-group"><label>選擇下一包 (依效期排序)</label><select id="stockSelect"></select></div>
-        <div class="form-group"><label>開封日期</label><input type="date" id="openDate"></div>
-        <button class="btn btn-secondary" onclick="markAsOpen()">確認開封並更新推算</button>
-        <div id="predictMsg" class="highlight-box" style="display: none;"></div>
+        <div class="form-group"><select id="stockSelect"></select></div>
+        <div class="form-group"><input type="date" id="openDate"></div>
+        <button class="btn btn-secondary" onclick="markAsOpen()">確認開封</button>
     </div>
 
     <div class="card">
-        <h2>📋 庫存與歷史紀錄</h2>
-        <div id="recordList"></div>
+        <h2>📋 紀錄清單</h2>
+        <div id="recentList"></div>
+        
+        <button id="toggleBtn" class="toggle-btn" onclick="toggleArchive()">▼ 查看更早之前的紀錄</button>
+        <div id="archiveSection"></div>
     </div>
 
     <div class="card" style="background: #eee; border: none; padding: 15px;">
-        <textarea id="importArea" rows="2" style="font-size: 10px;" placeholder="資料備份/匯入區..."></textarea>
-        <button class="btn" style="background:#666; color:#fff; padding:8px; font-size:12px;" onclick="importData()">匯入資料</button>
-        <button onclick="exportCSV()" style="background:none; border:none; color:#aaa; font-size:10px; margin-top:10px; width:100%;">匯出 CSV 備份</button>
+        <textarea id="importArea" rows="1" style="font-size: 10px;" placeholder="備份匯入區..."></textarea>
+        <button class="btn" style="background:#666; color:#fff; padding:6px; font-size:12px; margin-top:5px;" onclick="importData()">匯入</button>
+        <button onclick="exportCSV()" style="background:none; border:none; color:#aaa; font-size:10px; margin-top:10px; width:100%;">匯出 CSV</button>
     </div>
 </div>
 
@@ -80,13 +89,13 @@
 
     function getDailyUsage() {
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
-        if(doneList.length === 0) return 150; // 預設值
-        let totalDailyG = 0;
+        if(doneList.length === 0) return 150;
+        let total = 0;
         doneList.forEach(i => {
             const diff = (new Date(i.finishDate) - new Date(i.openDate)) / 86400000;
-            if(diff > 0) totalDailyG += (i.weightKg * 1000) / diff;
+            if(diff > 0) total += (i.weightKg * 1000) / diff;
         });
-        return totalDailyG / doneList.length;
+        return total / doneList.length;
     }
 
     function addEntry() {
@@ -96,7 +105,7 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || !expiry) return alert("請填寫品牌、重量及到期日");
+        if(!brand || isNaN(weight) || !expiry) return alert("資訊不足");
         const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor, weightKg: parseFloat(weightKg), price: price||0, expiry, openDate: null, finishDate: null, status: '庫存' });
         saveAndRender();
@@ -106,7 +115,7 @@
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
         const openStr = document.getElementById('openDate').value;
-        if(!id) return alert("請選擇飼料");
+        if(!id) return alert("沒選飼料");
         const dailyG = getDailyUsage();
         const idx = db.findIndex(i => i.id == id);
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
@@ -117,66 +126,80 @@
         finishDate.setDate(finishDate.getDate() + days);
         db[idx].finishDate = finishDate.toISOString().split('T')[0];
         saveAndRender();
-        const msg = document.getElementById('predictMsg');
-        msg.style.display = 'block';
-        msg.innerHTML = `✅ <b>${db[idx].brand}</b> 已開始食用。<br>依平均食量 <b>${Math.round(dailyG)}g/日</b> 計算，預計 <b>${db[idx].finishDate}</b> 吃完。`;
+    }
+
+    function toggleArchive() {
+        const arc = document.getElementById('archiveSection');
+        const btn = document.getElementById('toggleBtn');
+        if(arc.style.display === 'block') {
+            arc.style.display = 'none';
+            btn.innerText = '▼ 查看更早之前的紀錄';
+        } else {
+            arc.style.display = 'block';
+            btn.innerText = '▲ 收起舊紀錄';
+        }
     }
 
     function importData() {
         try {
-            const data = JSON.parse(document.getElementById('importArea').value);
-            if(confirm("確定覆蓋資料？")) { db = data; saveAndRender(); alert("匯入成功"); }
-        } catch(e) { alert("格式錯誤"); }
+            db = JSON.parse(document.getElementById('importArea').value);
+            saveAndRender(); alert("成功");
+        } catch(e) { alert("失敗"); }
     }
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
         
-        const select = document.getElementById('stockSelect');
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
-        select.innerHTML = stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}-${i.flavor}</option>`).join('');
+        document.getElementById('stockSelect').innerHTML = stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}-${i.flavor}</option>`).join('');
 
-        const list = document.getElementById('recordList');
-        const displayData = [...db].sort((a,b) => {
+        const sortedAll = [...db].sort((a,b) => {
             const s = {'食用中': 3, '庫存': 2, '已吃完': 1};
             return s[b.status] - s[a.status] || b.id - a.id;
         });
 
-        list.innerHTML = displayData.map(i => {
-            const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
-            // 計算單價
-            const unitPrice = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(1) : '-';
-            // 庫存預計天數
-            const predDays = i.status === '庫存' ? Math.round((i.weightKg * 1000) / dailyG) : 0;
+        // 分離紀錄：食用中 & 庫存 一定顯示，已吃完的只取前 5 筆放在最近
+        const activeRecords = sortedAll.filter(i => i.status !== '已吃完');
+        const doneRecords = sortedAll.filter(i => i.status === '已吃完');
+        const recentDone = doneRecords.slice(0, 5);
+        const olderDone = doneRecords.slice(5);
 
+        const renderItem = (i) => {
+            const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
+            const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(1) : '-';
+            const pred = i.status === '庫存' ? `<div class="food-prediction">💡 預計吃 ${Math.round((i.weightKg * 1000) / dailyG)} 天</div>` : '';
             return `
                 <div class="food-item">
                     <div class="food-info">
-                        <b>${i.brand} <span class="status-badge ${statusClass}">${i.status}</span></b>
-                        <span>${i.flavor} (${i.weightKg}kg)</span>
-                        ${i.status === '庫存' ? `<div class="food-prediction">💡 預計可吃 ${predDays} 天</div>` : ''}
+                        <div class="food-title-row">
+                            <b>${i.brand}</b>
+                            <span class="status-badge ${statusClass}">${i.status}</span>
+                        </div>
+                        <span class="sub-text">${i.flavor} (${i.weightKg}kg)</span>
+                        ${pred}
                     </div>
                     <div class="food-meta">
                         <div class="price-tag">$${i.price || '-'}</div>
-                        <div class="unit-price">$${unitPrice}/g</div>
+                        <div class="unit-price">$${up}/g</div>
                         <div class="date-info">${i.status==='庫存' ? i.expiry+' 到期' : (i.finishDate||'-')+' 完食'}</div>
                     </div>
                 </div>
             `;
-        }).join('');
+        };
+
+        document.getElementById('recentList').innerHTML = [...activeRecords, ...recentDone].map(renderItem).join('');
+        document.getElementById('archiveSection').innerHTML = olderDone.map(renderItem).join('');
+        document.getElementById('toggleBtn').style.display = olderDone.length > 0 ? 'block' : 'none';
     }
 
     function exportCSV() {
         let csv = "狀態,品牌,品項,公斤,價格,單價(g),到期,開封,完食\n";
-        db.forEach(i => {
-            const up = (i.price / (i.weightKg * 1000)).toFixed(2);
-            csv += `${i.status},${i.brand},${i.flavor},${i.weightKg},${i.price},${up},${i.expiry},${i.openDate},${i.finishDate}\n`;
-        });
+        db.forEach(i => csv += `${i.status},${i.brand},${i.flavor},${i.weightKg},${i.price},${(i.price/(i.weightKg*1000)).toFixed(2)},${i.expiry},${i.openDate},${i.finishDate}\n`);
         const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "Samy紀錄_V2.5.csv";
+        link.download = "Samy紀錄.csv";
         link.click();
     }
 
