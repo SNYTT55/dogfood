@@ -223,13 +223,13 @@
                 const estFinish = calculateFutureFinish(days);
                 const isRisk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color: var(--ai-yellow) ; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 吃 ${days} 天 | 🏁 完食：${estFinish}</div>`;
+                            <div style="font-size:10px; color:#fbb814 ; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 預估可吃 ${days} 天|可能在${estFinish} 吃完</div>`;
             } else if (i.status === '食用中') {
                 const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 🏁 完食：${i.finishDate}</div>`;
+                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 將在${i.finishDate}吃完</div>`;
             } else {
-                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁 完食日：${i.finishDate}</div>`;
+                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁：${i.finishDate}</div>`;
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
