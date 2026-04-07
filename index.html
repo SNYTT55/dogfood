@@ -223,7 +223,7 @@
                 const estFinish = calculateFutureFinish(days);
                 const isRisk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 吃 ${days} 天 | 🏁 完食：${estFinish}</div>`;
+                            <div style="font-size:10px; color: var(--ai-yellow) ; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 吃 ${days} 天 | 🏁 完食：${estFinish}</div>`;
             } else if (i.status === '食用中') {
                 const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
