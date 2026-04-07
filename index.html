@@ -55,29 +55,35 @@
         
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
         .modal-content textarea {
-    min-height: 480px;
-    font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace; /* 優先使用等寬字體 */
-    font-size: 13px;
-    line-height: 1.6;          /* 增加行高，解決「擠」的感覺 */
-    padding: 15px;             /* 增加內部留白，文字不貼邊 */
-    margin-top: 10px;
-    border-radius: 12px;       /* 框框圓角化，視覺較柔和 */
-    background: #f8f9fa;       /* 淺色背景增加對比 */
-    color: #2c3e50;
+    /* 1. 調整高度：不要寫死 480px，改用螢幕高度的佔比 */
+    height: 45vh;              /* vh 是螢幕高度單位，45vh 大約是半個螢幕 */
+    min-height: 300px;         /* 設定一個最小保底高度 */
     
-    white-space: pre;          /* 改回 pre 並配合橫向滾動，或使用 pre-wrap */
-    word-wrap: normal;         /* 保持代碼原樣 */
-    overflow: auto;            /* 允許水平與垂直滾動 */
+    /* 2. 寬度與比例 */
+    width: 100%;
+    padding: 16px;
+    margin-top: 12px;
     
-    border: 1px solid #eee;
-    tab-size: 4;               /* 設定 Tab 寬度 */
+    /* 3. 字體與行高：維持適中，不要太稀疏 */
+    font-size: 14px;           /* 稍微調大一點點，增加份量感 */
+    line-height: 1.4;          /* 1.4 是最紮實好讀的比例 */
+    
+    /* 4. 外觀細節 */
+    border-radius: 14px;
+    border: 1.5px solid #eee;
+    background: #fafafa;
+    box-sizing: border-box;    /* 確保 padding 不會撐破寬度 */
+    
+    /* 5. 滾動與換行 */
+    white-space: pre-wrap;     /* 自動換行，避免出現橫向捲軸讓框看起來更瘦 */
+    overflow-y: auto;
 }
 
-/* 深色模式下的調整 */
+/* 深色模式修正 */
 .v2-active .modal-content textarea {
-    background: rgba(0, 0, 0, 0.2) !important;
-    color: #e0e0e0 !important;
+    background: rgba(255,255,255,0.03) !important;
     border-color: var(--border-v2) !important;
+    color: #eee !important;
 }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
