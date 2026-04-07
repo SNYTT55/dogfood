@@ -3,130 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 功能回歸版</title>
+    <title>Samy管家 - 口味回歸修正版</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --accent-blue: #1976d2; --bg: #f8f9fa; --text: #333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 12px; padding-bottom: 80px; }
-        .container { max-width: 500px; margin: auto; }
-        h1 { font-size: 1.4rem; color: var(--primary); margin: 8px 0 16px; text-align: center; }
         
-        .card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        h2 { font-size: 1rem; margin: 0 0 12px 0; color: #555; }
-        
-        /* 佈局修正 */
-        .row { display: flex; gap: 8px; margin-bottom: 10px; width: 100%; align-items: flex-end; }
-        .col { flex: 1; min-width: 0; }
-        
-        label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; color: #888; }
-        input, select, textarea { 
-            width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; 
-            font-size: 16px; background: #fafafa; display: block;
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: var(--bg); color: var(--text); 
+            margin: 0; padding: 12px; padding-bottom: 100px;
+            overflow-x: hidden;
         }
-        /* 特別針對日期欄位優化 */
-        input[type="date"] { min-height: 45px; -webkit-appearance: listbox; } 
+        
+        .container { width: 100%; max-width: 500px; margin: auto; }
+        .card { 
+            background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee;
+        }
 
-        .btn { width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+        /* 🚀 寬度修正：改用 Grid 佈局強制等分且不撐開 */
+        .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; width: 100%; }
+        .grid-row-3 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .full-row { width: 100%; margin-bottom: 10px; }
+
+        label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; color: #888; }
+        
+        /* 🚀 文字置中與高度一致性 */
+        input, select, textarea { 
+            width: 100%; height: 46px; padding: 0 12px;
+            border: 1.5px solid #eee; border-radius: 10px; 
+            font-size: 16px; background: #fafafa; 
+            -webkit-appearance: none; appearance: none;
+            display: block; line-height: 44px; /* 修正對齊感 */
+        }
+
+        input[type="date"] {
+            -webkit-appearance: listbox; /* 強制 iOS 使用列表樣式以維持寬度 */
+            min-width: 0;
+            padding-top: 0; padding-bottom: 0;
+        }
+
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-stock-blue { background: var(--accent-blue); color: white; }
         .btn-open-green { background: var(--secondary); color: white; }
         
         /* 清單樣式 */
-        .food-item { border-bottom: 1px solid #f8f8f8; padding: 12px 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; border-radius: 8px; }
-        .food-info { flex: 1; min-width: 0; cursor: pointer; }
-        .food-title-row { display: flex; align-items: center; margin-bottom: 2px; }
-        .food-info b { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222; text-decoration: underline dotted #ccc; }
-        .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: bold; margin-left: 6px; flex-shrink: 0; }
+        .food-item { border-bottom: 1px solid #f8f8f8; padding: 12px 6px; display: flex; justify-content: space-between; align-items: center; }
+        .food-info { flex: 1; min-width: 0; }
+        .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: bold; margin-left: 6px; vertical-align: middle; }
         
         .bg-eating { background-color: var(--secondary); color: white; }
         .bg-stock { background-color: #e3f2fd; color: var(--accent-blue); border: 1px solid #bbdefb; }
         .bg-done { background-color: #f5f5f5; color: #999; }
-        .avoid-buy { background-color: #fff1f0 !important; } 
-
-        .sub-text { font-size: 0.75rem; color: #888; }
-        .memo-text { font-size: 0.7rem; color: #6b8e23; margin-top: 4px; background: rgba(255,255,255,0.7); padding: 2px 6px; border-radius: 4px; display: inline-block; border: 1px solid rgba(0,0,0,0.03); }
         
-        .food-meta { text-align: right; flex-shrink: 0; min-width: 75px; }
-        .price-tag { font-weight: bold; color: var(--primary); font-size: 0.95rem; }
-        .unit-price { font-size: 9px; color: #bbb; }
-        .date-info { font-size: 9px; color: #aaa; margin-top: 4px; }
+        /* 🚀 預計天數藍色文字 */
+        .pred-text { font-size: 10px; color: var(--accent-blue) !important; margin-top: 2px; font-weight: bold; }
+        .flavor-text { font-size: 0.8rem; color: #666; margin-top: 2px; }
         
-        /* 備份還原區 */
+        .food-meta { text-align: right; min-width: 95px; }
+        .price-tag { font-weight: bold; color: var(--primary); font-size: 1rem; }
+        .date-info { font-size: 9px; color: #aaa; margin-top: 2px; }
+        
         .backup-area { background: #eee; border: none; padding: 15px; margin-top: 20px; }
-        
-        #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(2px); }
-        .modal-content { background:white; padding:20px; border-radius:20px; width:88%; max-width:340px; }
+        #importArea { height: 40px; font-size: 10px; line-height: 1.2; padding: 8px; }
     </style>
 </head>
 <body>
 
-<div id="memoModal">
-    <div class="modal-content">
-        <h3 id="modalTitle" style="margin:0 0 4px 0; color:var(--primary);">編輯備註</h3>
-        <p id="modalSubTitle" style="font-size:0.8rem; color:#888; margin-bottom:12px;"></p>
-        <textarea id="memoInput" rows="4" placeholder="寫點心得..."></textarea>
-        <button class="btn btn-stock-blue" style="margin-top:12px;" onclick="saveMemo()">儲存心得</button>
-        <button class="btn" style="background:#eee; margin-top:8px; color:#666;" onclick="closeModal()">取消</button>
-    </div>
-</div>
-
 <div class="container">
-    <h1>🐾 Samy管家V4</h1>
+    <h1 style="text-align:center; color:var(--primary); margin: 10px 0;">🐾 Samy管家3.7</h1>
 
     <div class="card">
-        <h2>📦 新購入庫</h2>
-        <div class="row">
-            <div class="col"><label>品牌</label><input type="text" id="brand" placeholder="品牌"></div>
-            <div class="col"><label>品項</label><input type="text" id="flavor" placeholder="口味"></div>
+        <label style="font-size: 1rem; color: #444; margin-bottom: 12px; font-weight:bold;">📦 新購入庫</label>
+        <div class="grid-row">
+            <div><label>品牌</label><input type="text" id="brand" placeholder="品牌"></div>
+            <div><label>品項 (口味)</label><input type="text" id="flavor" placeholder="口味"></div>
         </div>
-        <div class="row">
-            <div class="col" style="flex: 1.5;">
-                <label>重量</label>
-                <div style="display: flex; gap: 4px;">
-                    <input type="number" id="weight" step="0.01" placeholder="數值">
-                    <select id="unit" style="width:65px;"><option value="kg">kg</option><option value="lb">lb</option></select>
-                </div>
+        <div class="grid-row-3">
+            <div><label>重量</label>
+                <div style="display:flex; gap:4px;"><input type="number" id="weight" step="0.01"><select id="unit" style="width:70px;"><option value="kg">kg</option><option value="lb">lb</option></select></div>
             </div>
-            <div class="col"><label>價格</label><input type="number" id="price" placeholder="$"></div>
+            <div><label>價格</label><input type="number" id="price" placeholder="$"></div>
         </div>
-        <div class="row" style="margin-bottom:0;">
-            <div class="col"><label>有效期限</label><input type="date" id="expiry"></div>
-        </div>
-        <button class="btn btn-stock-blue" style="margin-top:12px;" onclick="addEntry()">加入庫存</button>
+        <div class="full-row"><label>有效期限</label><input type="date" id="expiry"></div>
+        <button class="btn btn-stock-blue" onclick="addEntry()">加入庫存</button>
     </div>
 
     <div class="card">
-        <h2>🍴 開封管理</h2>
-        <div class="row"><div class="col"><label>選擇庫存</label><select id="stockSelect"></select></div></div>
-        <div class="row"><div class="col"><label>開封日期</label><input type="date" id="openDate"></div></div>
+        <label style="font-size: 1rem; color: #444; margin-bottom: 12px; font-weight:bold;">🍴 開封管理</label>
+        <div class="full-row"><label>選擇庫存包裝</label><select id="stockSelect"></select></div>
+        <div class="full-row"><label>開封日期</label><input type="date" id="openDate"></div>
         <button class="btn btn-open-green" onclick="markAsOpen()">確認開封</button>
     </div>
 
     <div class="card">
-        <h2>📋 紀錄清單</h2>
+        <label style="font-size: 1rem; color: #444; margin-bottom: 12px; font-weight:bold;">📋 紀錄清單</label>
         <div id="recentList"></div>
-        <button id="toggleBtn" style="background:none; border:none; color:#bbb; padding:12px; width:100%; font-size:11px; text-decoration:underline; display:none;" onclick="toggleArchive()">展開更早之前的紀錄</button>
-        <div id="archiveSection" style="display:none; border-top: 1px dashed #eee; padding-top:10px;"></div>
     </div>
 
     <div class="card backup-area">
-        <label style="color:#555;">💾 備份與還原</label>
-        <textarea id="importArea" rows="1" style="font-size: 10px; margin-top:5px;" placeholder="在此貼上備份代碼..."></textarea>
-        <div style="display: flex; gap: 8px; margin-top:8px;">
-            <button class="btn" style="background:#666; color:#fff; font-size:12px; padding:8px;" onclick="importData()">匯入備份</button>
-            <button class="btn" style="background:#888; color:#fff; font-size:12px; padding:8px;" onclick="exportCSV()">匯出 CSV</button>
+        <label>💾 數據備份與匯入</label>
+        <textarea id="importArea" placeholder="貼上備份代碼..."></textarea>
+        <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:8px; margin-top:8px;">
+            <button class="btn" style="background:#666; color:#fff; font-size:12px; height:38px;" onclick="importData()">匯入代碼</button>
+            <button class="btn" style="background:#888; color:#fff; font-size:12px; height:38px;" onclick="exportCSV()">匯出 CSV 檔</button>
         </div>
     </div>
 </div>
 
 <script>
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
-    let currentEditId = null;
 
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         
+        // 核心：計算平均食量
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
-        let dailyG = 150;
+        let dailyG = 150; 
         if(doneList.length > 0) {
             let total = 0;
             doneList.forEach(i => {
@@ -136,54 +129,42 @@
             dailyG = total / doneList.length;
         }
 
+        // 更新下拉選單
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
-        document.getElementById('stockSelect').innerHTML = stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}</option>`).join('');
+        document.getElementById('stockSelect').innerHTML = stocks.map(i => `<option value="${i.id}">${i.expiry} | ${i.brand}</option>`).join('') || '<option value="">(目前無庫存)</option>';
 
+        // 渲染清單
         const sortedAll = [...db].sort((a,b) => {
             const s = {'食用中': 3, '庫存': 2, '已吃完': 1};
             return s[b.status] - s[a.status] || b.id - a.id;
         });
 
-        const active = sortedAll.filter(i => i.status !== '已吃完');
-        const done = sortedAll.filter(i => i.status === '已吃完');
-        const recentDone = done.slice(0, 3);
-        const olderDone = done.slice(3);
-
         const renderItem = (i) => {
-            const isAvoid = (i.memo || "").includes("不要買") || (i.memo || "").includes("不回購");
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
-            const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(1) : '-';
+            let dateLabel = i.status === '庫存' ? i.expiry + " 到期" : (i.finishDate || "-") + (i.status === '食用中' ? " 預計完食" : " 完食");
             
-            // 決定顯示哪種日期
-            let dateLabel = "";
-            if (i.status === '庫存') dateLabel = i.expiry + " 到期";
-            else if (i.status === '食用中') dateLabel = (i.finishDate || "計算中") + " 預計完食";
-            else dateLabel = (i.finishDate || "-") + " 完食";
+            // ✨ 預計天數邏輯 (庫存狀態顯現)
+            let predText = "";
+            if (i.status === '庫存') {
+                const days = Math.round((i.weightKg * 1000) / dailyG);
+                predText = `<div class="pred-text">📅 預計可吃 ${days} 天</div>`;
+            }
 
             return `
-                <div class="food-item ${isAvoid ? 'avoid-buy' : ''}">
-                    <div class="food-info" onclick="openMemo(${i.id})">
-                        <div class="food-title-row">
-                            <b>${i.brand}</b>
-                            <span class="status-badge ${statusClass}">${i.status}</span>
-                        </div>
-                        <span class="sub-text">${i.flavor} (${i.weightKg}kg)</span>
-                        ${i.memo ? `<div class="memo-text">💬 ${i.memo}</div>` : ''}
+                <div class="food-item">
+                    <div class="food-info">
+                        <b>${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span><br>
+                        <div class="flavor-text">${i.flavor} (${i.weightKg}kg)</div>
+                        ${predText}
                     </div>
                     <div class="food-meta">
                         <div class="price-tag">$${i.price || '-'}</div>
-                        <div class="unit-price">$${up}/g</div>
                         <div class="date-info">${dateLabel}</div>
                     </div>
-                </div>
-            `;
+                </div>`;
         };
 
-        document.getElementById('recentList').innerHTML = [...active, ...recentDone].map(renderItem).join('');
-        document.getElementById('archiveSection').innerHTML = olderDone.map(renderItem).join('');
-        document.getElementById('toggleBtn').style.display = olderDone.length > 0 ? 'block' : 'none';
-        
-        // 更新匯入區內容（方便隨時複製備份代碼）
+        document.getElementById('recentList').innerHTML = sortedAll.map(renderItem).join('');
         document.getElementById('importArea').value = JSON.stringify(db);
     }
 
@@ -194,7 +175,7 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || !expiry) return alert("資訊不足");
+        if(!brand || !flavor || isNaN(weight) || !expiry) return alert("資訊不完整 (請檢查品牌、口味與效期)");
         const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor, weightKg: parseFloat(weightKg), price: price||0, expiry, status: '庫存', memo: "" });
         saveAndRender();
@@ -203,10 +184,10 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("請選擇庫存");
+        if(!id) return alert("請先選擇要開封的項目");
         const openStr = document.getElementById('openDate').value;
         
-        // 取得平均食量來預測完食日
+        // 重新計算平均值
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
         let dailyG = 150;
         if(doneList.length > 0) {
@@ -222,58 +203,27 @@
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中';
         db[idx].openDate = openStr;
-        
-        // 計算預計完食日
-        const days = (db[idx].weightKg * 1000) / dailyG;
         const finishDate = new Date(openStr);
-        finishDate.setDate(finishDate.getDate() + days);
+        finishDate.setDate(finishDate.getDate() + Math.round((db[idx].weightKg * 1000) / dailyG));
         db[idx].finishDate = finishDate.toISOString().split('T')[0];
-        
         saveAndRender();
     }
 
     function importData() {
         try {
             const data = JSON.parse(document.getElementById('importArea').value);
-            if(Array.isArray(data)) {
-                db = data;
-                saveAndRender();
-                alert("匯入成功！");
-            }
-        } catch(e) { alert("格式錯誤，無法匯入"); }
+            if(Array.isArray(data)) { db = data; saveAndRender(); alert("匯入成功！"); }
+        } catch(e) { alert("格式錯誤，無法讀取"); }
     }
 
     function exportCSV() {
-        let csv = "狀態,品牌,品項,公斤,價格,單價(g),到期,開封,完食,備註\n";
-        db.forEach(i => csv += `${i.status},${i.brand},${i.flavor},${i.weightKg},${i.price},${(i.price/(i.weightKg*1000)).toFixed(2)},${i.expiry},${i.openDate||''},${i.finishDate||''},${i.memo||''}\n`);
+        let csv = "狀態,品牌,品項,kg,價格,到期,完食\n";
+        db.forEach(i => csv += `${i.status},${i.brand},${i.flavor},${i.weightKg},${i.price},${i.expiry},${i.finishDate||''}\n`);
         const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Samy管家備份_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `Samy_Stock.csv`;
         link.click();
-    }
-
-    function openMemo(id) {
-        currentEditId = id;
-        const item = db.find(i => i.id == id);
-        document.getElementById('modalTitle').innerText = item.brand;
-        document.getElementById('modalSubTitle').innerText = item.flavor;
-        document.getElementById('memoInput').value = item.memo || "";
-        document.getElementById('memoModal').style.display = 'flex';
-    }
-
-    function saveMemo() {
-        const idx = db.findIndex(i => i.id == currentEditId);
-        db[idx].memo = document.getElementById('memoInput').value;
-        closeModal();
-        saveAndRender();
-    }
-
-    function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
-    function toggleArchive() { 
-        const arc = document.getElementById('archiveSection');
-        arc.style.display = arc.style.display === 'none' ? 'block' : 'none';
-        document.getElementById('toggleBtn').innerText = arc.style.display === 'none' ? '展開更早之前的紀錄' : '收起舊紀錄';
     }
 
     document.getElementById('openDate').valueAsDate = new Date();
