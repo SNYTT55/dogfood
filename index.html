@@ -440,45 +440,61 @@ function updateAIRecommendation() {
         };
     }
 
-    function copyJSON() {
-        const json = JSON.stringify(db, null, 4);
-        navigator.clipboard.writeText(json).then(() => alert("✅ JSON 已複製到剪貼簿"));
+function openRestoreModal() {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubTitle = document.getElementById('modalSubTitle');
+        const memoInput = document.getElementById('memoInput');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        
+        modalTitle.innerText = "系統還原 / 備份";
+        modalSubTitle.innerText = "可在下方編輯 JSON 或貼上還原碼";
+        
+        // 載入目前資料
+        memoInput.value = JSON.stringify(db, null, 4);
+        
+        // 隱藏原本編輯模式的刪除鈕
+        deleteBtn.style.display = 'none';
+        
+        // 顯示彈窗
+        document.getElementById('memoModal').style.display = 'flex';
+
+        // 動態生成「清除」與「複製」按鈕區塊
+        // 檢查是否已經存在工具列，避免重複生成
+        if (!document.getElementById('modal-tools')) {
+            const toolBar = document.createElement('div');
+            toolBar.id = 'modal-tools';
+            toolBar.style = "display:flex; gap:10px; margin-top:10px;";
+            toolBar.innerHTML = `
+                <button class="btn" style="background:#eee; color:#333; flex:1; font-size:13px; padding:10px;" onclick="document.getElementById('memoInput').value=''">🧹 一鍵清空</button>
+                <button class="btn" style="background:#e3f2fd; color:#1976d2; flex:1; font-size:13px; padding:10px;" onclick="copyModalJSON()">📋 一鍵複製</button>
+            `;
+            // 插入在 Textarea 後面，儲存按鈕前面
+            memoInput.parentNode.insertBefore(toolBar, modalSaveBtn);
+        }
+
+        modalSaveBtn.onclick = function() {
+            try {
+                const parsed = JSON.parse(memoInput.value);
+                if(Array.isArray(parsed)) { 
+                    db = parsed; 
+                    saveAndRender(); 
+                    closeModal(); 
+                    alert("✅ 還原成功"); 
+                } else {
+                    alert("格式錯誤：必須是 Array 陣列");
+                }
+            } catch(e) { 
+                alert("❌ JSON 格式錯誤，請檢查符號是否完整"); 
+            }
+        };
     }
 
-    function clearAllData() {
-        if(confirm("⚠️ 警告：這將永久刪除所有紀錄，確定嗎？")) {
-            if(confirm("最後確認：真的要全部刪除？（不可還原）")) {
-                db = [];
-                saveAndRender();
-                alert("🗑 已清除所有數據");
-            }
-        }
+    // 輔助功能：複製彈窗內的文字
+    function copyModalJSON() {
+        const text = document.getElementById('memoInput').value;
+        navigator.clipboard.writeText(text).then(() => alert("✅ 已複製到剪貼簿"));
     }
-    
-    function openRestoreModal() {
-    document.getElementById('modalTitle').innerText = "系統還原";
-    document.getElementById('modalSubTitle').innerText = "請貼上 JSON 備份數據";
-    
-    // 開啟時先顯示目前的資料（格式化後），方便使用者直接編輯或備份
-    document.getElementById('memoInput').value = JSON.stringify(db, null, 2);
-    
-    document.getElementById('memoModal').style.display = 'flex';
-    document.getElementById('deleteBtn').style.display = 'none';
-    
-    document.getElementById('modalSaveBtn').onclick = function() {
-        try {
-            const parsed = JSON.parse(document.getElementById('memoInput').value);
-            if(Array.isArray(parsed)) { 
-                db = parsed; 
-                saveAndRender(); 
-                closeModal(); 
-                alert("還原成功"); 
-            }
-        } catch(e) { 
-            alert("JSON 格式錯誤，請檢查是否有漏掉括號"); 
-        }
-    };
-}
 
     function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
 
