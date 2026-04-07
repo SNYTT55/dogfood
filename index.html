@@ -247,12 +247,11 @@ function getProteinGroup(flavor) {
     if (!flavor) return "OTHER";
     const text = flavor.toLowerCase();
     const mapping = [
-        { key: "雞肉", match: /雞|chicken|鳥/ },
+        { key: "雞肉", match: /雞|火雞|chicken|鳥/ },
         { key: "牛肉", match: /牛|beef/ },
-        { key: "魚類", match: /魚|鮭|鱈|鮪|旗|鯡|鯖|salmon|fish|tuna|cod/ },
+        { key: "魚類", match: /魚|鱉|鮭|鱈|鮪|旗|鯡|鯖|salmon|fish|tuna|cod/ },
         { key: "羊肉", match: /羊|lamb|mutton/ },
         { key: "鴨肉", match: /鴨|duck/ },
-        { key: "火雞", match: /火雞|turkey/ },
         { key: "鹿肉", match: /鹿|venison/ }
     ];
     const found = mapping.find(m => m.match.test(text));
@@ -266,45 +265,56 @@ function updateAIRecommendation() {
     if (stocks.length === 0) { area.style.display = 'none'; return; }
     area.style.display = 'block';
 
-    // 取得上一包資訊
-    const lastDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')))[0];
-    const lastGroup = lastDone ? getProteinGroup(lastDone.flavor) : null;
+    // 取得「正在吃」的資訊作為基準
+    const currentActive = db.find(i => i.status === '食用中');
+    const lastGroup = currentActive ? getProteinGroup(currentActive.flavor) : null;
+    
+    // 預計當前這包什麼時候吃完 (作為下一包開始的基準點)
+    const dailyG = getDailyUsage();
+    let nextStartDate = new Date();
+    if (currentActive && currentActive.finishDate) {
+        nextStartDate = new Date(currentActive.finishDate.replace(/\//g, '-'));
+    }
 
-    // 為每包庫存打分
     const scored = stocks.map(item => {
         let score = 0;
         let reasons = [];
         const group = getProteinGroup(item.flavor);
-        
-        // 規則：避開重複口味 (權重最高)
+        const expiryDate = new Date(item.expiry.replace(/\//g, '-'));
+        const mfgDate = item.mfgDate ? new Date(item.mfgDate.replace(/\//g, '-')) : null;
+
+        // --- 核心邏輯 1: 效期絕對優先 (過期風險) ---
+        const daysToFinish = (item.weightKg * 1000) / dailyG;
+        const estFinishDate = new Date(nextStartDate);
+        estFinishDate.setDate(estFinishDate.getDate() + daysToFinish);
+
+        if (estFinishDate > expiryDate) {
+            score += 5000; // 給予極高分，強制置頂
+            reasons.push("⚠️ 有過期風險");
+        }
+
+        // --- 核心邏輯 2: 主食輪替 (避開重複) ---
         if (lastGroup && group === lastGroup) {
-            score -= 500; 
+            score -= 1000; // 同口味大幅扣分，除非它快過期了否則不選
         } else {
-            score += 200;
+            score += 500;
             if (lastGroup) reasons.push(`避開${lastGroup}`);
         }
 
-        // 規則：效期優先
-        const daysToExpiry = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
-        if (daysToExpiry < 90) {
-            score += 300;
-            reasons.push("效期告急");
-        } else if (daysToExpiry < 180) {
-            score += 100;
-            reasons.push("優先消化");
-        }
-
-        // 規則：製造日期久 (越早買的先吃)
-        if (item.mfgDate) {
-            const monthsOld = (new Date() - new Date(item.mfgDate.replace(/\//g, '-'))) / (1000 * 60 * 60 * 24 * 30);
-            score += monthsOld * 10;
+        // --- 核心邏輯 3: 製造日期 (先進先出) ---
+        if (mfgDate) {
+            // 計算這包飼料「出廠至今」的天數
+            const ageInDays = (new Date() - mfgDate) / 86400000;
+            score += (ageInDays * 1); // 越早製造的分數越高 (每天 +1 分)
+            reasons.push("優先消化舊品");
         }
 
         return { item, score, reasons, group };
     }).sort((a, b) => b.score - a.score);
 
     const best = scored[0];
-    const reasonText = best.reasons.length > 0 ? best.reasons.map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ') : '<span class="ai-reason-tag">綜合推薦</span>';
+    // 只顯示最有意義的標籤 (避開重複 + 風險)
+    const reasonText = best.reasons.slice(0, 2).map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ');
 
     document.getElementById('ai-rec-content').innerHTML = `
         <div style="font-size:16px; font-weight:800; margin-bottom:6px;">${best.item.brand} · ${best.item.flavor}</div>
