@@ -134,7 +134,7 @@
     <div class="tag-sticker v1-tag">Feeding Control</div>
     
     <div id="ai-suggestion-area" class="ai-recommendation-box">
-        <div style="font-size: 11px; font-weight: 900; color: #d2691e; margin-bottom: 8px;">✨Top recommendation✨</div>
+        <div style="font-size: 16px; font-weight: 900; color: #d2691e; margin-bottom: 8px;">✨Top recommendation✨</div>
         <div id="ai-rec-content">計算推薦中...</div>
     </div>
 
@@ -318,7 +318,7 @@ function updateAIRecommendation() {
 
     document.getElementById('ai-rec-content').innerHTML = `
     <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-        <span style="font-size: 16px; font-weight: 800; color: var(--text-v1);">${best.item.brand}/${best.item.flavor}</span>
+        <span style="font-size: 14px; font-weight: 800; color: var(--text-v1);">${best.item.brand}/${best.item.flavor}</span>
         <span style="font-size: 10px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 700;">
             ${best.group}
         </span>
