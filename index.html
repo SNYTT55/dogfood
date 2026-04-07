@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Food Center</title>
+    <title>飼料智慧管家 Pro</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -205,7 +205,7 @@
         const activeItem = db.find(i => i.status === '食用中');
         const baseDate = activeItem && activeItem.finishDate ? safeDate(activeItem.finishDate) : new Date();
 
-        // 依製造日期排序 (MFG 越早越前面)
+        // 核心排序：庫存依製造日期排序 (MFG)
         const stocks = db.filter(i => i.status === '庫存').sort((a,b) => safeDate(a.mfg || '1970/01/01') - safeDate(b.mfg || '1970/01/01'));
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
             stocks.map(i => `<option value="${i.id}">${i.brand} - ${i.flavor || '一般'} (MFG:${i.mfg || '-'})</option>`).join('') : 
@@ -216,7 +216,7 @@
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            // 核心調整：製造日期 與 有效期限 放在同一列
+            // 同一列顯示 製造日期 / 有效期限
             let dateRow = i.status === '已吃完' ? `🏁：${i.finishDate}` : `🗓️ ${i.mfg || '--'} / ${i.expiry || '--'}`;
             let extra = "";
 
@@ -236,6 +236,8 @@
                 extra = `<div style="font-size:10px; color:#666; margin-top:4px;" class="${isRisk?'warning-text':''}">
                             ${isRisk ? '⚠️ ' : '💡 '}下一包開這袋：約可吃 ${canLastDays} 天至 ${dateStr}
                          </div>`;
+                // 在計算下一包時，更新基礎日期以便累積計算
+                baseDate.setDate(baseDate.getDate() + canLastDays);
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
@@ -253,9 +255,13 @@
         ];
 
         document.getElementById('activeList').innerHTML = activeListItems.map(renderItem).join('') || '<div style="text-align:center;padding:20px;color:#999;">無活躍項目</div>';
+        
         const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => safeDate(b.finishDate) - safeDate(a.finishDate));
         const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
         document.getElementById('archiveList').innerHTML = displayDone.map(renderItem).join('') + (allDone.length > 5 ? `<button class="expand-btn" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開更多'}</button>` : '');
+        
+        // 如果目前在 V2 頁面，同步更新數據
+        if(document.getElementById('main-body').classList.contains('v2-active')) runAI();
     }
 
     function addEntry() {
@@ -308,7 +314,6 @@
         document.getElementById('modalSaveBtn').onclick = function() {
             try {
                 let raw = document.getElementById('memoInput').value.trim();
-                raw = raw.replace(/"(\d{4})-(\d{2})-(\d{2})"/g, '"$1/$2/$3"');
                 const parsed = JSON.parse(raw);
                 if(Array.isArray(parsed)) { db = parsed; saveAndRender(); closeModal(); alert("還原成功"); }
             } catch(e) { alert("JSON 格式錯誤"); }
@@ -317,15 +322,25 @@
 
     function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
 
+    // 修復與強化 V2 Analytics 的推估功能
     function runAI() {
         const dailyG = Math.round(getDailyUsage());
         document.getElementById('ai-avg-usage-v2').innerText = dailyG;
+        
+        // 1. 計算所有「食用中」與「庫存」的動態剩餘總量
         const currentTotalKg = db.filter(i => i.status !== '已吃完').reduce((acc, i) => acc + getDynamicRemaining(i, dailyG), 0);
-        const totalDays = Math.round((currentTotalKg * 1000) / dailyG);
         document.getElementById('ai-total-kg').innerText = currentTotalKg.toFixed(2) + " kg";
-        const fDate = new Date(); fDate.setDate(fDate.getDate() + totalDays);
-        document.getElementById('ai-finish-date-big').innerText = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
+        
+        // 2. 總共還能撐幾天
+        const totalDays = dailyG > 0 ? Math.round((currentTotalKg * 1000) / dailyG) : 0;
         document.getElementById('ai-days-left-tag').innerText = totalDays;
+        
+        // 3. 預計斷糧日期（今天 + totalDays）
+        const fDate = new Date(); 
+        fDate.setDate(fDate.getDate() + totalDays);
+        document.getElementById('ai-finish-date-big').innerText = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
+        
+        // 4. 進度條（以 60 天為基準 100%）
         document.getElementById('ai-progress-bar').style.width = Math.min(100, (totalDays / 60) * 100) + "%";
     }
 
