@@ -177,11 +177,24 @@
         </div>
 
         <div class="v2-card">
-            <div class="tag-sticker v2-tag">Refill Planner</div>
+    <div class="tag-sticker v2-tag">Refill Planner</div>
+    
+    <div style="display: flex; align-items: center; gap: 15px; margin-top: 5px;">
+        <div style="flex: 1;">
             <label style="color:rgba(255,255,255,0.4); font-size: 10px;">設定目標日期</label>
-            <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center;">
-            <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">PENDING</div>
+            <input type="text" id="ai-target-date" inputmode="numeric" 
+                   onkeyup="formatDate(this); runAI();" 
+                   placeholder="YYYY/MM/DD" 
+                   style="text-align: center; padding: 10px; font-size: 14px;">
         </div>
+
+        <div style="flex: 1;">
+            <div id="ai-refill-gap" style="font-weight:900; font-size:1rem; color: var(--ai-yellow); text-align: center; padding: 10px; border: 1px dashed rgba(251,192,45,0.3); border-radius:12px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
+                PENDING
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="v2-card"><div class="tag-sticker v2-tag">Archive</div><div id="archiveList"></div></div>
 
