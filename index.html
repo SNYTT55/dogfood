@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+    <link rel="apple-touch-icon" href="icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 智慧預測整合版</title>
+    <title>飼料管理中心</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f8f9fa; --text: #333; --blue: #1976d2; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -72,7 +73,7 @@
 </div>
 
 <div class="container">
-    <h1>🐾管家</h1>
+    <h1>🐾🐾🐾🐾🐾</h1>
 
     <div class="card">
         <h2>📦 新購入庫</h2>
@@ -91,7 +92,7 @@
         </div>
         
         <div class="form-group">
-            <label>有效期限 (YYYY/MM/DD)</label>
+            <label>有效期限</label>
             <input type="text" id="expiry" inputmode="numeric" placeholder="例如: 2026/12/31" onkeyup="formatDate(this)">
         </div>
         <button class="btn btn-primary" onclick="addEntry()">加入庫存清單</button>
@@ -101,13 +102,13 @@
         <h2>🍴 開封管理</h2>
         <label>選擇待開封飼料</label>
         <select id="stockSelect" style="margin-bottom:10px;"></select>
-        <label>開封日期 (YYYY/MM/DD)</label>
+        <label>開封日期 </label>
         <input type="text" id="openDate" inputmode="numeric" placeholder="預設今日" onkeyup="formatDate(this)">
         <button class="btn btn-secondary" style="margin-top:10px;" onclick="markAsOpen()">確認開封</button>
     </div>
 
     <div class="card">
-        <h2>📋 紀錄 (點擊名稱寫備註)</h2>
+        <h2>📋 紀錄 </h2>
         <div id="recentList"></div>
         <button id="toggleBtn" style="background:#eee; border:none; color:#777; padding:10px; width:100%; border-radius:8px; font-size:12px; margin-top:10px; display:none;" onclick="toggleArchive()">▼ 查看舊紀錄</button>
         <div id="archiveSection" style="display:none; margin-top:10px; border-top:1px dashed #ccc;"></div>
