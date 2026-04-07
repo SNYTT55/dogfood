@@ -204,16 +204,17 @@
         const activeItem = db.find(i => i.status === '食用中');
         const baseDate = activeItem && activeItem.finishDate ? safeDate(activeItem.finishDate) : new Date();
 
-        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => safeDate(a.expiry) - safeDate(b.expiry));
+        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
-            stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
+            stocks.map(i => `<option value="${i.id}">${i.brand} - ${i.flavor || '一般'} (${i.expiry})</option>`).join('') : 
+            '<option value="">目前無庫存項目</option>';
         
         const renderItem = (i) => {
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const currentWeight = getDynamicRemaining(i, dailyG);
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            let dateInfo = i.status === '已吃完' ? `🏁：${i.finishDate}` : `📅：${i.expiry}`;
+            let dateInfo = i.status === '已吃完' ? `🏁${i.finishDate}` : `📅：${i.expiry}`;
             let extra = "";
 
             if (i.status === '食用中') {
