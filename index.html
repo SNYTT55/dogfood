@@ -83,7 +83,7 @@
 
 <div class="container">
     <div id="page-v1" class="tab-page active">
-        <h1>🐾 庫存日誌</h1>
+
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -100,7 +100,7 @@
 
         <div class="v1-card">
             <div class="tag-sticker v1-tag">Feeding Control</div>
-            <label>待開封清單 (品牌 - 品項 - 有效期)</label>
+            <label>待開封清單</label>
             <select id="stockSelect" style="margin-bottom:12px;"></select>
             <label>開封日期</label><input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="markAsOpen()">確認開封</button>
@@ -113,7 +113,6 @@
     </div>
 
     <div id="page-v2" class="tab-page">
-        <h1>🤖 數據分析</h1>
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Storage Status</div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -137,7 +136,7 @@
 
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Refill Planner</div>
-            <label>設定目標日期</label>
+            <label style="color:rgba(255,255,255,0.4); font-size: 10px;">設定目標日期</label>
             <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center;">
             <div id="ai-refill-gap" style="font-weight:900; font-size:1.1rem; color: var(--ai-yellow); text-align: center; padding: 15px; margin-top:10px; border: 1px dashed rgba(251,192,45,0.2); border-radius:12px;">PENDING</div>
         </div>
@@ -224,14 +223,14 @@
                 const days = Math.round((i.weightKg * 1000) / dailyG);
                 const estFinish = calculateFutureFinish(days);
                 const isRisk = new Date(estFinish.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 吃 ${days} 天 | 🏁 完食：${estFinish}123</div>`;
+                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅：${i.expiry}</div>
+                            <div style="font-size:10px; color:#666; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 約可吃 ${days} 天 | 預計在${estFinish}吃完</div>`;
             } else if (i.status === '食用中') {
                 const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 🏁 完食：${i.finishDate}123</div>`;
+                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅：${i.expiry}</div>
+                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 預計在${i.finishDate}吃完</div>`;
             } else {
-                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁 完食日：${i.finishDate}</div>`;
+                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁：${i.finishDate}</div>`;
             }
 
             return `<div class="food-item" onclick="openMemo(${i.id})">
