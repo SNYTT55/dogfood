@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy管家 - 手動輸入優化版</title>
+    <title>Samy管家 - 智慧預測整合版</title>
     <style>
         :root { --primary: #d2691e; --secondary: #2e7d32; --bg: #f8f9fa; --text: #333; --blue: #1976d2; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -14,7 +14,7 @@
         h2 { font-size: 1.1rem; margin: 0 0 12px 0; color: #555; }
         label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #666; }
         
-        /* 修改輸入框樣式，強化提示感 */
+        /* 輸入框優化 */
         input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; background: #fafafa; }
         input::placeholder { color: #ccc; font-size: 0.9rem; }
 
@@ -45,8 +45,8 @@
             font-style: normal; 
             margin-top: 4px; 
             background: rgba(46, 125, 50, 0.08); 
-            padding: 2px 8px; 
-            border-radius: 4px; 
+            padding: 4px 8px; 
+            border-radius: 6px; 
             display: inline-block; 
         }
         
@@ -64,7 +64,7 @@
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top:0;">📝 編輯心得</h3>
         <p id="modalSubTitle" style="font-size:0.8rem; color:#888;"></p>
-        <textarea id="memoInput" rows="4" placeholder="心得備註..."></textarea>
+        <textarea id="memoInput" rows="4" placeholder="輸入心得...（包含「不要買」會觸發警告色）"></textarea>
         <button class="btn btn-primary" onclick="saveMemo()">儲存心得</button>
         <button class="btn" style="background:#ddd; margin-top:8px;" onclick="closeModal()">取消</button>
         <button class="btn" style="background:none; color:#ff5252; font-size:12px; margin-top:10px;" id="deleteBtn">🗑 刪除此筆紀錄</button>
@@ -72,7 +72,7 @@
 </div>
 
 <div class="container">
-    <h1>🐾 Samy管家123</h1>
+    <h1>🐾管家</h1>
 
     <div class="card">
         <h2>📦 新購入庫</h2>
@@ -84,7 +84,7 @@
             <div style="flex: 1.5;"><label>重量</label>
                 <div style="display: flex; gap: 4px;">
                     <input type="number" id="weight" step="0.01" placeholder="數值">
-                    <select id="unit" style="width:70px;"><option value="kg">kg</option><option value="lb">lb</option></select>
+                    <select id="unit" style="width:75px;"><option value="kg">kg</option><option value="lb">lb</option></select>
                 </div>
             </div>
             <div style="flex: 1;"><label>價格</label><input type="number" id="price" placeholder="台幣"></div>
@@ -124,29 +124,23 @@
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let currentEditId = null;
 
-    // 自動格式化日期：輸入 20260407 自動變 2026/04/07
+    // 日期自動補斜線功能
     function formatDate(obj) {
         let v = obj.value.replace(/\D/g, '').substring(0, 8);
-        if (v.length > 4 && v.length <= 6) {
-            v = v.substring(0, 4) + '/' + v.substring(4);
-        } else if (v.length > 6) {
-            v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6);
-        }
+        if (v.length > 4 && v.length <= 6) { v = v.substring(0, 4) + '/' + v.substring(4); } 
+        else if (v.length > 6) { v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6); }
         obj.value = v;
     }
 
-    // 取得今天日期的字串 (YYYY/MM/DD)
     function getTodayStr() {
         const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}/${m}/${day}`;
+        return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
     }
 
+    // 計算平均每日消耗量
     function getDailyUsage() {
         const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
-        if(doneList.length === 0) return 150;
+        if(doneList.length === 0) return 150; // 預設值
         let total = 0;
         doneList.forEach(i => {
             const diff = (new Date(i.finishDate.replace(/\//g, '-')) - new Date(i.openDate.replace(/\//g, '-'))) / 86400000;
@@ -179,9 +173,35 @@
             const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
             const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
             
-            let dateText = i.status === '庫存' 
-                ? `<div style="font-size:10px; color:#d2691e; margin-top:2px;">💡 預計可吃 ${Math.round((i.weightKg * 1000) / dailyG)} 天</div>`
-                : (i.status === '食用中' ? `<div style="font-size:10px; color:#2e7d32; margin-top:2px;">📅 預計 ${i.finishDate || '計算中'} 吃完</div>` : `<div style="font-size:10px; color:#bbb; margin-top:2px;">🏁 ${i.finishDate} 完食</div>`);
+            let dateText = '';
+            if (i.status === '庫存') {
+                const days = Math.round((i.weightKg * 1000) / dailyG);
+                const eatingItem = db.find(item => item.status === '食用中');
+                let baseDate = new Date();
+                if (eatingItem && eatingItem.finishDate) {
+                    baseDate = new Date(eatingItem.finishDate.replace(/\//g, '-'));
+                }
+                const estFinish = new Date(baseDate);
+                estFinish.setDate(estFinish.getDate() + days);
+                const estStr = `${estFinish.getFullYear()}/${String(estFinish.getMonth()+1).padStart(2,'0')}/${String(estFinish.getDate()).padStart(2,'0')}`;
+                
+                // 檢查是否會過期
+                const expDate = new Date(i.expiry.replace(/\//g, '-'));
+                const isExpiredRisk = estFinish > expDate;
+                const alertStyle = isExpiredRisk ? 'color:#ff5252; font-weight:bold;' : 'color:#d2691e;';
+
+                dateText = `
+                    <div style="font-size:10px; color:#666; margin-top:2px;">📅 有效期限：${i.expiry}</div>
+                    <div style="font-size:10px; ${alertStyle} margin-top:2px;">
+                        ${isExpiredRisk ? '⚠️ ' : '💡 '}預計可吃 ${days} 天 (約 ${estStr} 完食)
+                    </div>`;
+            } else if (i.status === '食用中') {
+                dateText = `
+                    <div style="font-size:10px; color:#666; margin-top:2px;">📅 有效期限：${i.expiry}</div>
+                    <div style="font-size:10px; color:#2e7d32; margin-top:2px;">🍴 預計 ${i.finishDate || '計算中'} 吃完</div>`;
+            } else {
+                dateText = `<div style="font-size:10px; color:#bbb; margin-top:2px;">🏁 ${i.finishDate} 完食</div>`;
+            }
 
             return `
                 <div class="food-item ${isAvoid ? 'avoid-buy' : ''}">
@@ -210,7 +230,7 @@
         const unit = document.getElementById('unit').value;
         const price = document.getElementById('price').value;
         const expiry = document.getElementById('expiry').value;
-        if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊不足或日期格式錯誤 (需為 YYYY/MM/DD)");
+        if(!brand || isNaN(weight) || expiry.length < 10) return alert("請完整填寫資訊及正確日期格式");
         const weightKg = (unit === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor, weightKg: parseFloat(weightKg), price: price||0, expiry, status: '庫存', memo: "", openDate: null, finishDate: null });
         saveAndRender();
@@ -219,11 +239,9 @@
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
-        if(!id) return alert("請選擇飼料");
+        if(!id) return alert("請選擇庫存項目");
         let openStr = document.getElementById('openDate').value;
         if(!openStr) openStr = getTodayStr();
-        if(openStr.length < 10) return alert("日期格式錯誤 (需為 YYYY/MM/DD)");
-
         const dailyG = getDailyUsage();
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
@@ -244,7 +262,7 @@
         document.getElementById('memoInput').value = item.memo || "";
         document.getElementById('memoModal').style.display = 'flex';
         document.getElementById('deleteBtn').onclick = function() {
-            if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); }
+            if(confirm('確定要刪除這筆紀錄？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); }
         };
     }
 
@@ -265,20 +283,19 @@
 
     function exportData() {
         const dataStr = JSON.stringify(db);
-        navigator.clipboard.writeText(dataStr).then(() => alert("數據代碼已複製到剪貼簿！請自行貼上至記事本備份。"));
+        navigator.clipboard.writeText(dataStr).then(() => alert("數據代碼已複製到剪貼簿！"));
     }
 
     function importData() {
-        const input = prompt("請貼上備份的數據代碼 (JSON)：");
+        const input = prompt("請貼上備份數據代碼 (JSON)：");
         if (input) {
             try {
                 const imported = JSON.parse(input);
-                if (Array.isArray(imported)) { db = imported; saveAndRender(); alert("還原成功！"); }
-            } catch (e) { alert("失敗。"); }
+                if (Array.isArray(imported)) { db = imported; saveAndRender(); alert("數據還原成功！"); }
+            } catch (e) { alert("格式錯誤。"); }
         }
     }
 
-    // 頁面加載時設定預設今日日期
     document.getElementById('openDate').value = getTodayStr();
     saveAndRender();
 </script>
