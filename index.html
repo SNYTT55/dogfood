@@ -138,7 +138,7 @@
         <div id="ai-rec-content">計算推薦中...</div>
     </div>
 
-    <label>待開封清單 (手動選取)</label>
+    <label>開封飼料</label>
     <select id="stockSelect" style="margin-bottom:12px;"></select>
     <label>開封日期</label>
     <input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
@@ -317,7 +317,7 @@ function updateAIRecommendation() {
     const reasonText = best.reasons.slice(0, 2).map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ');
 
     document.getElementById('ai-rec-content').innerHTML = `
-        <div style="font-size:16px; font-weight:800; margin-bottom:6px;">${best.item.brand} · ${best.item.flavor}</div> <span style="font-size:10px; color:#999;">(分類: ${best.group})</span>
+        <div style="font-size:16px; font-weight:800; margin-bottom:6px;">${best.item.brand} · ${best.item.flavor}</div> <div> <style="font-size:10px; color:#999;">(分類: ${best.group})</div>
         <div style="display:flex; align-items:center; gap:5px;">
             ${reasonText}
         </div>
