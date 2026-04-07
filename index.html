@@ -22,13 +22,11 @@
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .tab-btn.ai-active { color: var(--ai-yellow); border-bottom-color: var(--ai-yellow); }
         
-        /* 調整間距，因為拿掉了標題 */
         .tab-page { display: none; padding: 25px 15px; animation: fadeIn 0.3s ease; }
         .tab-page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .container { max-width: 500px; margin: auto; }
-        
         .tag-sticker { position: absolute; top: 0; left: 0; padding: 4px 12px; font-size: 10px; font-weight: 900; border-bottom-right-radius: 12px; text-transform: uppercase; letter-spacing: 1px; }
         .v1-card, .v2-card { position: relative; padding: 38px 22px 22px !important; border-radius: 20px; margin-bottom: 20px; overflow: hidden; }
         .v1-card { background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
@@ -55,8 +53,6 @@
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px 24px 0 0; width:100%; max-width:500px; color: #333; animation: slideUp 0.3s ease; }
         .v2-active .modal-content { background: var(--card-v2); color: #fff; }
-        
-        /* 調整後的大小 */
         .modal-content textarea { min-height: 250px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
         
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -157,13 +153,17 @@
 </div>
 
 <script>
-    // 初始化時，強制統一所有舊資料的格式
-    let rawData = localStorage.getItem('dogFoodMobileDB');
-    let db = JSON.parse(rawData || '[]').map(item => {
-        if(item.expiry) item.expiry = item.expiry.replace(/-/g, '/');
-        if(item.openDate) item.openDate = item.openDate.replace(/-/g, '/');
-        if(item.finishDate) item.finishDate = item.finishDate.replace(/-/g, '/');
-        return item;
+    // 強化日期格式化函式
+    const fixDate = (str) => {
+        if (!str) return "";
+        return str.toString().replace(/-/g, '/');
+    };
+
+    let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]').map(i => {
+        i.expiry = fixDate(i.expiry);
+        i.openDate = fixDate(i.openDate);
+        i.finishDate = fixDate(i.finishDate);
+        return i;
     });
 
     function showTab(tab) {
@@ -231,7 +231,7 @@
                 const estFinish = calculateFutureFinish(days);
                 const isRisk = new Date(estFinish) > new Date(i.expiry);
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
-                            <div style="font-size:10px; color:#fbb814 ; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 預估可吃 ${days} 天|約在${estFinish} 吃完</div>`;
+                            <div style="font-size:10px; color:#fbb814 ; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">${isRisk?'⚠️ ':''}💡 預估可吃 ${days} 天 | 約在${estFinish} 吃完</div>`;
             } else if (i.status === '食用中') {
                 const isRisk = i.finishDate && new Date(i.finishDate) > new Date(i.expiry);
                 dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">📅 有效期：${i.expiry}</div>
@@ -258,7 +258,7 @@
     function addEntry() {
         const brand = document.getElementById('brand').value.trim();
         const weight = parseFloat(document.getElementById('weight').value);
-        let expiry = document.getElementById('expiry').value.replace(/-/g, '/');
+        let expiry = fixDate(document.getElementById('expiry').value);
         if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊不完整");
         const weightKg = (document.getElementById('unit').value === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor: document.getElementById('flavor').value.trim(), weightKg: parseFloat(weightKg), price: document.getElementById('price').value||0, expiry, status: '庫存', memo: "" });
@@ -269,7 +269,7 @@
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
         if(!id) return alert("請選擇庫存");
-        let openStr = (document.getElementById('openDate').value || getTodayStr()).replace(/-/g, '/');
+        let openStr = fixDate(document.getElementById('openDate').value || getTodayStr());
         db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中'; db[idx].openDate = openStr;
@@ -304,17 +304,22 @@
         document.getElementById('deleteBtn').style.display = 'none';
         document.getElementById('modalSaveBtn').onclick = function() {
             try {
-                let parsed = JSON.parse(document.getElementById('memoInput').value);
+                // 增加清除前後雜質的功能
+                let cleanInput = document.getElementById('memoInput').value.trim();
+                let parsed = JSON.parse(cleanInput);
                 if(Array.isArray(parsed)) { 
-                    db = parsed.map(item => {
-                        if(item.expiry) item.expiry = item.expiry.replace(/-/g, '/');
-                        if(item.openDate) item.openDate = item.openDate.replace(/-/g, '/');
-                        if(item.finishDate) item.finishDate = item.finishDate.replace(/-/g, '/');
-                        return item;
+                    db = parsed.map(i => {
+                        i.expiry = fixDate(i.expiry);
+                        i.openDate = fixDate(i.openDate);
+                        i.finishDate = fixDate(i.finishDate);
+                        return i;
                     });
                     saveAndRender(); closeModal(); alert("還原成功"); 
                 }
-            } catch(e) { alert("JSON 格式錯誤"); }
+            } catch(e) { 
+                console.error(e);
+                alert("JSON 格式不符或包含錯誤字元，請重新檢查後貼上。"); 
+            }
         };
     }
 
@@ -330,7 +335,7 @@
         document.getElementById('ai-finish-date-big').innerText = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
         document.getElementById('ai-days-left-tag').innerText = totalDays;
         document.getElementById('ai-progress-bar').style.width = Math.min(100, (totalDays / 60) * 100) + "%";
-        const targetVal = document.getElementById('ai-target-date').value.replace(/-/g, '/');
+        const targetVal = fixDate(document.getElementById('ai-target-date').value);
         if(targetVal.length === 10) {
             const gap = ((((new Date(targetVal) - new Date()) / 86400000) * dailyG) / 1000 - currentTotalKg).toFixed(2);
             document.getElementById('ai-refill-gap').innerHTML = gap > 0 ? `尚差 ${gap} kg` : "✅ 庫存充足！";
