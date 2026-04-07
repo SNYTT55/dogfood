@@ -56,18 +56,29 @@
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
         .modal-content textarea {
     min-height: 480px;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace; /* 優先使用等寬字體 */
     font-size: 13px;
+    line-height: 1.6;          /* 增加行高，解決「擠」的感覺 */
+    padding: 15px;             /* 增加內部留白，文字不貼邊 */
     margin-top: 10px;
-    line-height: 1.5;
+    border-radius: 12px;       /* 框框圓角化，視覺較柔和 */
+    background: #f8f9fa;       /* 淺色背景增加對比 */
+    color: #2c3e50;
     
-    /* 關鍵：確保長字串或路徑會自動換行 */
-    white-space: pre-wrap; 
-    word-wrap: break-word;
-    overflow-y: auto;
+    white-space: pre;          /* 改回 pre 並配合橫向滾動，或使用 pre-wrap */
+    word-wrap: normal;         /* 保持代碼原樣 */
+    overflow: auto;            /* 允許水平與垂直滾動 */
+    
+    border: 1px solid #eee;
+    tab-size: 4;               /* 設定 Tab 寬度 */
 }
-        .v2-active .modal-content { background: var(--card-v2); color: #fff; }
-        .modal-content textarea { min-height: 480px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
+
+/* 深色模式下的調整 */
+.v2-active .modal-content textarea {
+    background: rgba(0, 0, 0, 0.2) !important;
+    color: #e0e0e0 !important;
+    border-color: var(--border-v2) !important;
+}
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
