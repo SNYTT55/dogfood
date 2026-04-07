@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>飼料</title>
+    <title>Food Center</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -55,7 +55,7 @@
         #memoModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:flex-end; backdrop-filter: blur(4px); }
         .modal-content { background:white; padding:25px; border-radius:24px 24px 0 0; width:100%; max-width:500px; color: #333; animation: slideUp 0.3s ease; }
         .v2-active .modal-content { background: var(--card-v2); color: #fff; }
-        .modal-content textarea { min-height: 480px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
+        .modal-content textarea { min-height: 250px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
@@ -77,13 +77,13 @@
 </div></div>
 
 <nav class="nav-tabs">
-    <div id="btn-v1" class="tab-btn active" onclick="showTab('v1')">INVENTORY</div>
-    <div id="btn-v2" class="tab-btn" onclick="showTab('v2')">ANALYTICS</div>
+    <div id="btn-v1" class="tab-btn active" onclick="showTab('v1')">STORAGE</div>
+    <div id="btn-v2" class="tab-btn" onclick="showTab('v2')">MONITOR</div>
 </nav>
 
 <div class="container">
     <div id="page-v1" class="tab-page active">
-        <h1>🐾 庫存日誌</h1>
+        <h1>STORAGE</h1>
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -113,7 +113,7 @@
     </div>
 
     <div id="page-v2" class="tab-page">
-        <h1>🤖 數據分析</h1>
+        <h1>MONITOR</h1>
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Storage Status</div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
