@@ -110,12 +110,13 @@
 
 <nav class="nav-tabs">
     <div id="btn-v1" class="tab-btn active" onclick="showTab('v1')">INVENTORY</div>
+    <div id="btn-v3" class="tab-btn" onclick="showTab('v3')">TREATS</div>
     <div id="btn-v2" class="tab-btn" onclick="showTab('v2')">ANALYTICS</div>
 </nav>
 
 <div class="container">
+    
     <div id="page-v1" class="tab-page active">
-
         <div class="v1-card">
             <div class="tag-sticker v1-tag">New Purchase</div>
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -134,23 +135,52 @@
         </div>
 
         <div class="v1-card">
-    <div class="tag-sticker v1-tag">Feeding Control</div>
-    
-    <div id="ai-suggestion-area" class="ai-recommendation-box">
-        <div style="font-size: 16px; font-weight: 900; color: #d2691e; margin-bottom: 8px;">✨Top Recommendation✨</div>
-        <div id="ai-rec-content">計算推薦中...</div>
-    </div>
-
-    <label>開封飼料</label>
-    <select id="stockSelect" style="margin-bottom:12px;"></select>
-    <label>開封日期</label>
-    <input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
-    <button class="btn btn-secondary" style="margin-top:15px;" onclick="markAsOpen()">確認開封</button>
-</div>
+            <div class="tag-sticker v1-tag">Feeding Control</div>
+            <div id="ai-suggestion-area" class="ai-recommendation-box">
+                <div style="font-size: 16px; font-weight: 900; color: #d2691e; margin-bottom: 8px;">✨Top Recommendation✨</div>
+                <div id="ai-rec-content">計算推薦中...</div>
+            </div>
+            <label>開封飼料</label>
+            <select id="stockSelect" style="margin-bottom:12px;"></select>
+            <label>開封日期</label>
+            <input type="text" id="openDate" inputmode="numeric" onkeyup="formatDate(this)">
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="markAsOpen()">確認開封</button>
+        </div>
 
         <div class="v1-card">
             <div class="tag-sticker v1-tag">Live Status</div>
             <div id="activeList"></div>
+        </div>
+    </div>
+
+    <div id="page-v3" class="tab-page">
+        <div class="ai-recommendation-box" style="background: #faf7e0; border-color: #f7f7e1;">
+            <div style="font-size: 16px; font-weight: 900; color: #ff0000; margin-bottom: 8px;">🚨 Expiry Warning</div>
+            <div id="treat-ai-rec">分析點心效期中...</div>
+        </div>
+
+        <div class="v1-card">
+            <div class="tag-sticker v1-tag" style="background: #7986cb;">Add Treats</div>
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <div style="flex:3.5">
+                    <label>類型</label>
+                    <select id="treat-type">
+                        <option value="can">罐頭</option>
+                        <option value="snack">零食</option>
+                    </select>
+                </div>
+                <div style="flex:6.5"><label>品名</label><input type="text" id="treat-name"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <div style="flex:1"><label>數量</label><input type="number" id="treat-count" placeholder="24"></div>
+                <div style="flex:1.5"><label>有效期限</label><input type="text" id="treat-expiry" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2026/12/31"></div>
+            </div>
+            <button class="btn btn-primary" style="background:#5c6bc0; margin-top:15px;" onclick="addTreat()">加入點心庫存</button>
+        </div>
+
+        <div class="v1-card">
+            <div class="tag-sticker v1-tag" style="background: #9fa8da;">Treats Stock</div>
+            <div id="treatList"></div>
         </div>
     </div>
 
@@ -178,16 +208,11 @@
 
         <div class="v2-card">
             <div class="tag-sticker v2-tag">Refill Planner</div>
-            
             <div style="display: flex; align-items: flex-end; gap: 12px; margin-top: 5px;">
                 <div style="flex: 1.2;">
                     <label style="color:rgba(255,255,255,0.4); font-size: 10px; margin-bottom: 8px;">設定目標日期</label>
-                    <input type="text" id="ai-target-date" inputmode="numeric" 
-                           onkeyup="formatDate(this); runAI();" 
-                           placeholder="YYYY/MM/DD" 
-                           style="text-align: center; padding: 12px 5px; font-size: 14px; height: 46px;">
+                    <input type="text" id="ai-target-date" inputmode="numeric" onkeyup="formatDate(this); runAI();" placeholder="YYYY/MM/DD" style="text-align: center; padding: 12px 5px; font-size: 14px; height: 46px;">
                 </div>
-        
                 <div style="flex: 1;">
                     <label style="display: block; height: 10px; margin-bottom: 8px;"></label>
                     <div id="ai-refill-gap" style="font-weight:900; font-size:0.9rem; color: var(--ai-yellow); text-align: center; border: 1px dashed rgba(251,192,45,0.3); border-radius:12px; height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02);">
@@ -214,13 +239,25 @@
     let db = JSON.parse(localStorage.getItem('dogFoodMobileDB') || '[]');
     let isArchiveExpanded = false;
 
+    // --- 核心導覽與顯示 ---
     function showTab(tab) {
-        document.getElementById('page-v1').classList.toggle('active', tab === 'v1');
-        document.getElementById('page-v2').classList.toggle('active', tab === 'v2');
-        document.getElementById('btn-v1').classList.toggle('active', tab === 'v1');
-        document.getElementById('btn-v2').classList.toggle('ai-active', tab === 'v2');
-        document.getElementById('main-body').classList.toggle('v2-active', tab === 'v2');
-        if(tab === 'v2') runAI();
+        ['page-v1', 'page-v2', 'page-v3'].forEach(p => document.getElementById(p).classList.remove('active'));
+        ['btn-v1', 'btn-v2', 'btn-v3'].forEach(b => {
+            document.getElementById(b).classList.remove('active');
+            document.getElementById(b).classList.remove('ai-active');
+        });
+
+        document.getElementById('page-' + tab).classList.add('active');
+        const btn = document.getElementById('btn-' + tab);
+        if (tab === 'v2') {
+            btn.classList.add('ai-active');
+            document.getElementById('main-body').classList.add('v2-active');
+            runAI();
+        } else {
+            btn.classList.add('active');
+            document.getElementById('main-body').classList.remove('v2-active');
+        }
+        if (tab === 'v3') updateTreatAI();
     }
 
     function formatDate(obj) {
@@ -235,8 +272,9 @@
         return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
     }
 
+    // --- 運算邏輯 (主食部分) ---
     function getDailyUsage() {
-        const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate);
+        const doneList = db.filter(i => i.status === '已吃完' && i.openDate && i.finishDate && !i.category);
         if(doneList.length === 0) return 150;
         let total = 0;
         doneList.forEach(i => {
@@ -250,8 +288,7 @@
         if (item.status !== '食用中' || !item.openDate) return item.weightKg;
         const daysPassed = (new Date() - new Date(item.openDate.replace(/\//g, '-'))) / 86400000;
         if (daysPassed <= 0) return item.weightKg;
-        const consumed = (daysPassed * dailyG) / 1000;
-        return Math.max(0, item.weightKg - consumed);
+        return Math.max(0, item.weightKg - (daysPassed * dailyG / 1000));
     }
 
     function calculateFutureFinish(days) {
@@ -277,149 +314,133 @@ function getProteinGroup(flavor) {
 
 // 2. AI 評分核心
 function updateAIRecommendation() {
-    const stocks = db.filter(i => i.status === '庫存');
-    const area = document.getElementById('ai-suggestion-area');
-    if (stocks.length === 0) { area.style.display = 'none'; return; }
-    area.style.display = 'block';
+        const stocks = db.filter(i => i.status === '庫存' && !i.category);
+        const area = document.getElementById('ai-suggestion-area');
+        if (stocks.length === 0) { area.style.display = 'none'; return; }
+        area.style.display = 'block';
 
-    // 取得「正在吃」的資訊作為基準
-    const currentActive = db.find(i => i.status === '食用中');
-    const lastGroup = currentActive ? getProteinGroup(currentActive.flavor) : null;
-    
-    // 預計當前這包什麼時候吃完 (作為下一包開始的基準點)
-    const dailyG = getDailyUsage();
-    let nextStartDate = new Date();
-    if (currentActive && currentActive.finishDate) {
-        nextStartDate = new Date(currentActive.finishDate.replace(/\//g, '-'));
+        const currentActive = db.find(i => i.status === '食用中' && !i.category);
+        const lastGroup = currentActive ? getProteinGroup(currentActive.flavor) : null;
+        const dailyG = getDailyUsage();
+
+        const scored = stocks.map(item => {
+            let score = 0;
+            let reasons = [];
+            const group = getProteinGroup(item.flavor);
+            const expiryDate = new Date(item.expiry.replace(/\//g, '-'));
+            
+            // 邏輯 1: 效期優先
+            const daysToFinish = (item.weightKg * 1000) / dailyG;
+            const estFinishDate = new Date(); estFinishDate.setDate(estFinishDate.getDate() + daysToFinish);
+            if (estFinishDate > expiryDate) { score += 5000; reasons.push("‼️有過期風險"); }
+
+            // 邏輯 2: 輪替
+            if (lastGroup && group === lastGroup) score -= 1000;
+            else { score += 500; if(lastGroup) reasons.push(`🚫避重複(${lastGroup})`); }
+
+            return { item, score, reasons, group };
+        }).sort((a, b) => b.score - a.score);
+
+        const best = scored[0];
+        document.getElementById('ai-rec-content').innerHTML = `
+            <div style="font-weight:800;">${best.item.brand} / ${best.item.flavor}</div>
+            <div style="margin-top:5px;">${best.reasons.map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ')}</div>
+            <button onclick="document.getElementById('stockSelect').value='${best.item.id}'" class="expand-btn">📍 自動選取此項</button>
+        `;
     }
 
-    const scored = stocks.map(item => {
-        let score = 0;
-        let reasons = [];
-        const group = getProteinGroup(item.flavor);
-        const expiryDate = new Date(item.expiry.replace(/\//g, '-'));
-        const mfgDate = item.mfgDate ? new Date(item.mfgDate.replace(/\//g, '-')) : null;
+// --- 零食與罐頭專用邏輯 (V3) ---
+    function addTreat() {
+        const type = document.getElementById('treat-type').value;
+        const name = document.getElementById('treat-name').value;
+        const count = parseInt(document.getElementById('treat-count').value);
+        const expiry = document.getElementById('treat-expiry').value;
+        if (!name || isNaN(count) || expiry.length < 10) return alert("請填寫品名、數量與效期");
+        db.push({ id: Date.now(), category: type, brand: name, remainCount: count, totalCount: count, expiry: expiry, status: '庫存', memo: "" });
+        saveAndRender();
+        ['treat-name', 'treat-count', 'treat-expiry'].forEach(id => document.getElementById(id).value = '');
+    }
 
-        // --- 核心邏輯 1: 效期絕對優先 (過期風險) ---
-        const daysToFinish = (item.weightKg * 1000) / dailyG;
-        const estFinishDate = new Date(nextStartDate);
-        estFinishDate.setDate(estFinishDate.getDate() + daysToFinish);
-
-        if (estFinishDate > expiryDate) {
-            score += 5000; // 給予極高分，強制置頂
-            reasons.push("‼️有過期風險");
+    function consumeTreat(id, amount) {
+        const item = db.find(i => i.id == id);
+        if (item.remainCount >= amount) {
+            item.remainCount -= amount;
+            if (item.remainCount <= 0) { item.status = '已吃完'; item.finishDate = getTodayStr(); }
+            saveAndRender();
         }
+    }
 
-        // --- 核心邏輯 2: 主食輪替 (避開重複) ---
-        if (lastGroup && group === lastGroup) {
-            score -= 1000; // 同口味大幅扣分，除非它快過期了否則不選
-        } else {
-            score += 500;
-            if (lastGroup) reasons.push(`🚫避開重複主食；上次是${lastGroup}`);
-        }
-
-        // --- 核心邏輯 3: 製造日期 (先進先出) ---
-        if (mfgDate) {
-            // 計算這包飼料「出廠至今」的天數
-            const ageInDays = (new Date() - mfgDate) / 86400000;
-            score += (ageInDays * 1); // 越早製造的分數越高 (每天 +1 分)
-            reasons.push("‼️出廠較久");
-        }
-
-        return { item, score, reasons, group };
-    }).sort((a, b) => b.score - a.score);
-
-    const best = scored[0];
-    // 只顯示最有意義的標籤 (避開重複 + 風險)
-    const reasonText = best.reasons.slice(0, 2).map(r => `<span class="ai-reason-tag">${r}</span>`).join(' ');
-
-    document.getElementById('ai-rec-content').innerHTML = `
-    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-        <span style="font-size: 14px; font-weight: 800; color: var(--text-v1);">${best.item.brand}/${best.item.flavor}</span>
-        <span style="font-size: 10px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 700;">
-            ${best.group}
-        </span>
-    </div>
-    
-    <div style="display: flex; align-items: center; gap: 6px;">
-        ${reasonText}
-    </div>
-
-    <button onclick="document.getElementById('stockSelect').value='${best.item.id}'" class="expand-btn" style="border-style:solid; border-color:rgba(0,0,0,0.1); color:inherit; padding:8px; margin-top:12px; background:rgba(0,0,0,0.03); font-weight: 700;">
-        📍 自動選取此項
-    </button>
-`;
-}
+    function updateTreatAI() {
+        const treats = db.filter(i => i.status === '庫存' && i.category);
+        const recArea = document.getElementById('treat-ai-rec');
+        if (treats.length === 0) { recArea.innerHTML = "點心庫存安全 ✨"; return; }
+        const scored = treats.map(item => {
+            const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
+            const pressure = item.remainCount / Math.max(daysLeft, 1);
+            return { item, pressure, daysLeft };
+        }).sort((a, b) => b.pressure - a.pressure);
+        const top = scored[0];
+        const isUrgent = top.daysLeft < 45;
+        recArea.innerHTML = `<b style="color:${isUrgent?'var(--danger)':'var(--pink)'}">${isUrgent?'🚨 急需消耗':'💡 推薦開啟'}：</b> ${top.item.brand}<br><span style="font-size:11px; color:#888;">理由：剩 ${Math.round(top.daysLeft)} 天過期，平均每天需吃 ${top.pressure.toFixed(1)} 份。</span>`;
+    }
     
     function saveAndRender() {
         localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
         const dailyG = getDailyUsage();
-        
-        // 取得當前食用中項目的結束日期，作為庫存推算的基準點
-        const activeItem = db.find(i => i.status === '食用中');
-        let activeFinishDateObj = new Date();
-        if (activeItem && activeItem.finishDate) {
-            activeFinishDateObj = new Date(activeItem.finishDate.replace(/\//g, '-'));
-        }
 
-        const stocks = db.filter(i => i.status === '庫存').sort((a,b) => new Date(a.expiry.replace(/\//g, '-')) - new Date(b.expiry.replace(/\//g, '-')));
+        // 渲染主食下拉選單
+        const stocks = db.filter(i => i.status === '庫存' && !i.category);
         document.getElementById('stockSelect').innerHTML = stocks.length ? 
-            stocks.map(i => `<option value="${i.id}">${i.brand}/${i.flavor || '一般'} (${i.expiry})</option>`).join('') : 
-            '<option value="">無庫存</option>';
-        
+            stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
+
+        // 渲染列表的通用函數
         const renderItem = (i) => {
-            const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
-            const currentWeight = getDynamicRemaining(i, dailyG);
-            const up = (i.price > 0) ? (i.price / (i.weightKg * 1000)).toFixed(2) : '-';
-            
-            let dateInfo = '';
-            const mfgInfo = i.mfgDate || '----/--/--';
-
-            if (i.status === '庫存') {
-                const daysThisBag = Math.round((i.weightKg * 1000) / dailyG);
-                let bagFinishDate = new Date(activeFinishDateObj);
-                bagFinishDate.setDate(bagFinishDate.getDate() + daysThisBag);
-                
-                const estFinish = `${bagFinishDate.getFullYear()}/${String(bagFinishDate.getMonth()+1).padStart(2,'0')}/${String(bagFinishDate.getDate()).padStart(2,'0')}`;
-                const isRisk = bagFinishDate > new Date(i.expiry.replace(/\//g, '-'));
-                
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">🏭：${mfgInfo} | 📅：${i.expiry}</div>
-                            <div style="font-size:10px; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">
-                            ${isRisk?'⚠️ ':'💡 '}約可吃 ${daysThisBag} 天至 ${estFinish}</div>`;
-            } else if (i.status === '食用中') {
-                const isRisk = i.finishDate && new Date(i.finishDate.replace(/\//g, '-')) > new Date(i.expiry.replace(/\//g, '-'));
-                dateInfo = `<div style="font-size:10px; color:#999; margin-top:4px;">🏭：${mfgInfo} | 📅：${i.expiry}</div>
-                            <div style="font-size:10px; color:#2e7d32; font-weight:600; margin-top:2px;" class="${isRisk?'warning-text':''}">🍴 剩 ${currentWeight.toFixed(2)}kg | 預計在 ${i.finishDate} 吃完</div>`;
-            } else {
-                // 已吃完保持原樣
-                dateInfo = `<div style="font-size:10px; color:#888; margin-top:4px;">🏁：${i.finishDate}</div>`;
+            if (i.category) { // 點心類渲染
+                const daysLeft = Math.round((new Date(i.expiry.replace(/\//g, '-')) - new Date()) / 86400000);
+                return `
+                    <div class="food-item">
+                        <div style="flex:1;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <b style="font-size:1rem;">${i.brand}</b>
+                                <span class="status-badge bg-stock">${i.category.toUpperCase()}</span>
+                            </div>
+                            <div style="font-size:10px; color:#999; margin-top:4px;">📅 效期：${i.expiry} (剩 ${daysLeft} 天)</div>
+                            <div style="font-size:12px; font-weight:800; color:var(--primary); margin-top:5px;">剩餘：${i.remainCount} 份</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <button class="status-badge bg-eating" style="border:none; cursor:pointer;" onclick="consumeTreat(${i.id}, 1)">-1</button>
+                            ${i.category === 'can' ? `<button class="status-badge bg-eating" style="border:none; cursor:pointer; background:#bbdefb; color:#1976d2;" onclick="consumeTreat(${i.id}, 3)">-3</button>` : ''}
+                        </div>
+                    </div>`;
+            } else { // 主食類渲染 (維持原樣)
+                const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
+                return `<div class="food-item" onclick="openMemo(${i.id})">
+                    <div style="flex:1;">
+                        <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
+                        <div style="font-size:0.85rem;color:#777;">${i.flavor || ''} (${i.weightKg}kg)</div>
+                        <div style="font-size:10px; color:#999; margin-top:4px;">📅 ${i.expiry}</div>
+                    </div>
+                </div>`;
             }
-
-            return `<div class="food-item" onclick="openMemo(${i.id})">
-                <div style="flex:1;">
-                    <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                    <div style="font-size:0.85rem;color:#777;margin-top:2px;">${i.flavor} (${i.weightKg}kg)</div>
-                    ${dateInfo}
-                </div>
-                <div style="text-align:right;"><div class="price-tag">$${i.price||'-'}</div><span style="font-size:10px;color:#bbb;">$${up}/g</span></div></div>`;
         };
 
-        document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完').map(renderItem).join('') || '<div style="text-align:center;padding:20px;color:#999;">無活躍項目</div>';
-        const allDone = db.filter(i => i.status === '已吃完').sort((a,b) => new Date(b.finishDate.replace(/\//g, '-')) - new Date(a.finishDate.replace(/\//g, '-')));
-        const displayDone = isArchiveExpanded ? allDone : allDone.slice(0, 5);
-        document.getElementById('archiveList').innerHTML = displayDone.map(renderItem).join('') + (allDone.length > 5 ? `<button class="expand-btn" onclick="isArchiveExpanded=!isArchiveExpanded;saveAndRender();">${isArchiveExpanded ? '▲ 收合' : '▼ 展開更多'}</button>` : '');
+        document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完' && !i.category).map(renderItem).join('') || '無項目';
+        document.getElementById('treatList').innerHTML = db.filter(i => i.status !== '已吃完' && i.category).map(renderItem).join('') || '無點心庫存';
+        
+        const allDone = db.filter(i => i.status === '已吃完');
+        document.getElementById('archiveList').innerHTML = allDone.slice(0, 5).map(renderItem).join('');
+        
         updateAIRecommendation();
+        updateTreatAI();
     }
-
     
     function addEntry() {
         const brand = document.getElementById('brand').value.trim();
         const weight = parseFloat(document.getElementById('weight').value);
-        const mfgDate = document.getElementById('mfgDate').value;
         const expiry = document.getElementById('expiry').value;
         if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊不完整");
         const weightKg = (document.getElementById('unit').value === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
-        db.push({ id: Date.now(), brand, flavor: document.getElementById('flavor').value.trim(), weightKg: parseFloat(weightKg), price: document.getElementById('price').value||0, mfgDate, expiry, status: '庫存', memo: "" });
+        db.push({ id: Date.now(), brand, flavor: document.getElementById('flavor').value.trim(), weightKg: parseFloat(weightKg), price: document.getElementById('price').value||0, mfgDate: document.getElementById('mfgDate').value, expiry, status: '庫存', memo: "" });
         saveAndRender();
         ['brand', 'flavor', 'weight', 'price', 'mfgDate', 'expiry'].forEach(id => document.getElementById(id).value = '');
     }
@@ -428,7 +449,7 @@ function updateAIRecommendation() {
         const id = document.getElementById('stockSelect').value;
         if(!id) return alert("請選擇庫存");
         let openStr = document.getElementById('openDate').value || getTodayStr();
-        db.forEach(i => { if(i.status === '食用中') { i.status = '已吃完'; i.finishDate = openStr; } });
+        db.forEach(i => { if(i.status === '食用中' && !i.category) { i.status = '已吃完'; i.finishDate = openStr; } });
         const idx = db.findIndex(i => i.id == id);
         db[idx].status = '食用中'; db[idx].openDate = openStr;
         const days = (db[idx].weightKg * 1000) / getDailyUsage();
