@@ -153,36 +153,70 @@
         </div>
     </div>
 
-    <div id="page-v3" class="tab-page">
-        <div class="ai-recommendation-box" style="background: #faf7e0; border-color: #f7f7e1;">
-            <div style="font-size: 16px; font-weight: 900; color: #ff0000; margin-bottom: 8px;">🚨 Expiry Warning</div>
-            <div id="treat-ai-rec">分析點心效期中...</div>
+  <div id="page-v3" class="tab-page">
+        <div class="v1-card">
+            <div class="tag-sticker v1-tag" style="background: #7986cb;">RANK</div>
+            <div id="ai-suggestion-area" class="ai-recommendation-box" style="background: white; border-color: #f7f7e1;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                      <div style="font-size: 16px; font-weight: 900; color: #ff0000;">🚨 Top 3 消耗建議</div>
+                      <div id="treat-ai-filter" style="display: flex; gap: 4px; background: rgba(0,0,0,0.05); padding: 2px; border-radius: 8px;">
+                          <button onclick="setTreatFilter('can')" id="f-can" class="filter-mini-btn">罐頭</button>
+                          <button onclick="setTreatFilter('snack')" id="f-snack" class="filter-mini-btn">零食</button>
+                      </div>
+                  </div>
+                  <div id="treat-ai-rec">分析中...</div>
+              </div>
         </div>
 
-        <div class="v1-card">
-            <div class="tag-sticker v1-tag" style="background: #7986cb;">Add Treats</div>
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <div style="flex:3.5">
-                    <label>類型</label>
-                    <select id="treat-type">
-                        <option value="can">罐頭</option>
-                        <option value="snack">零食</option>
-                    </select>
-                </div>
-                <div style="flex:6.5"><label>品名</label><input type="text" id="treat-name"></div>
-            </div>
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <div style="flex:1"><label>數量</label><input type="number" id="treat-count" placeholder="24"></div>
-                <div style="flex:1.5"><label>有效期限</label><input type="text" id="treat-expiry" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2026/12/31"></div>
-            </div>
-            <button class="btn btn-primary" style="background:#5c6bc0; margin-top:15px;" onclick="addTreat()">加入點心庫存</button>
-        </div>
+      
 
-        <div class="v1-card">
-            <div class="tag-sticker v1-tag" style="background: #9fa8da;">Treats Stock</div>
-            <div id="treatList"></div>
-        </div>
-    </div>
+      <div class="v1-card">
+          <div class="tag-sticker v1-tag" style="background: #7986cb;">Add Treats</div>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <div style="flex:3.5">
+                  <label>類型</label>
+                  <select id="treat-type">
+                      <option value="can">罐頭</option>
+                      <option value="snack">零食</option>
+                  </select>
+              </div>
+              <div style="flex:6.5"><label>品名</label><input type="text" id="treat-name"></div>
+          </div>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <div style="flex:1"><label>數量</label><input type="number" id="treat-count" placeholder="1"></div>
+              <div style="flex:1.5"><label>有效期限</label><input type="text" id="treat-expiry" inputmode="numeric" onkeyup="formatDate(this)" placeholder="2026/12/31"></div>
+          </div>
+          <button class="btn btn-primary" style="background:#5c6bc0; margin-top:15px;" onclick="addTreat()">加入點心庫存</button>
+      </div>
+
+      <div class="v1-card">
+          <div class="tag-sticker v1-tag" style="background: #9fa8da;">Treats Stock</div>
+          <div id="treatList"></div>
+      </div>
+
+      <div class="v1-card" style="padding-top: 15px !important;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div class="tag-sticker v1-tag" style="background: #90a4ae; position: static;">Treat History</div>
+              
+              <div style="display: flex; gap: 12px; align-items: center;">
+                  <button onclick="clearTreatHistory()" style="background: #f0f0f0; border: none; color: #666; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 6px;">
+                      清除
+                  </button>
+                  <button onclick="toggleTreatArchive()" id="treat-archive-toggle" style="background: #f0f0f0; border: none; color: #666; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 6px;">
+                      展開
+                  </button>
+              </div>
+          </div>
+
+          <div id="treatArchiveList" style="display: none; border-top: 1px dashed #eee; margin-top: 5px;">
+              </div>
+      </div>
+  </div>
+
+  <style>
+      .filter-mini-btn { border: none; background: none; font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: #888; font-weight: 700; }
+      .filter-mini-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  </style>
 
     <div id="page-v2" class="tab-page">
         <div class="v2-card">
@@ -370,70 +404,196 @@ function updateAIRecommendation() {
         }
     }
 
-    function updateTreatAI() {
-        const treats = db.filter(i => i.status === '庫存' && i.category);
-        const recArea = document.getElementById('treat-ai-rec');
-        if (treats.length === 0) { recArea.innerHTML = "點心庫存安全 ✨"; return; }
-        const scored = treats.map(item => {
-            const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
-            const pressure = item.remainCount / Math.max(daysLeft, 1);
-            return { item, pressure, daysLeft };
-        }).sort((a, b) => b.pressure - a.pressure);
-        const top = scored[0];
-        const isUrgent = top.daysLeft < 45;
-        recArea.innerHTML = `<b style="color:${isUrgent?'var(--danger)':'var(--pink)'}">${isUrgent?'🚨 急需消耗':'💡 推薦開啟'}：</b> ${top.item.brand}<br><span style="font-size:11px; color:#888;">理由：剩 ${Math.round(top.daysLeft)} 天過期，平均每天需吃 ${top.pressure.toFixed(1)} 份。</span>`;
-    }
+function updateTreatAI() {
+    const treats = db.filter(i => i.status === '庫存' && i.category);
+    const recArea = document.getElementById('treat-ai-rec');
     
-    function saveAndRender() {
-        localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
-        const dailyG = getDailyUsage();
+    if (treats.length === 0) {
+        recArea.innerHTML = "點心庫存安全 ✨";
+        return;
+    }
 
-        // 渲染主食下拉選單
-        const stocks = db.filter(i => i.status === '庫存' && !i.category);
-        document.getElementById('stockSelect').innerHTML = stocks.length ? 
-            stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
+    // 計算壓力值並排序
+    const scored = treats.map(item => {
+        const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
+        // 壓力公式：剩餘份數 / 剩餘天數 (天數最少為 1 避免除以 0)
+        const pressure = item.remainCount / Math.max(daysLeft, 1);
+        return { item, pressure, daysLeft };
+    }).sort((a, b) => b.pressure - a.pressure);
 
-        // 渲染列表的通用函數
+    // 取前三名
+    const top3 = scored.slice(0, 3);
+    
+    let html = `<div style="display: flex; flex-direction: column; gap: 8px;">`;
+    
+    top3.forEach((entry, index) => {
+        const isUrgent = entry.daysLeft < 60 || entry.pressure > 0.5;
+        const color = isUrgent ? '#ff5252' : '#ffa726';
+        const icon = entry.item.category === 'can' ? '🥫' : '🦴';
+        
+        html += `
+            <div style="background: rgba(255,255,255,0.5); padding: 8px; border-radius: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="font-size: 13px;">${index + 1}. ${icon} ${entry.item.brand}</b>
+                    <span style="font-size: 10px; background: ${color}; color: white; padding: 1px 5px; border-radius: 4px;">
+                        ${isUrgent ? '優先消耗' : '建議開啟'}
+                    </span>
+                </div>
+                <div style="font-size: 11px; color: #666; margin-top: 3px;">
+                    理由：剩 ${Math.round(entry.daysLeft)} 天，平均需每日消耗 ${entry.pressure.toFixed(1)} 份
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    recArea.innerHTML = html;
+}
+    
+let currentTreatFilter = 'all'; // 全域變數記錄點心篩選狀態
+
+function setTreatFilter(type) {
+    currentTreatFilter = type;
+    document.querySelectorAll('.filter-mini-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`f-${type}`).classList.add('active');
+    updateTreatAI();
+}
+
+function saveAndRender() {
+    localStorage.setItem('dogFoodMobileDB', JSON.stringify(db));
+    const dailyG = getDailyUsage();
+    const today = new Date();
+
+    // 1. 主食下拉選單
+    const stocks = db.filter(i => i.status === '庫存' && !i.category);
+    document.getElementById('stockSelect').innerHTML = stocks.length ? 
+        stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
+
+    // 2. 核心渲染組件 (renderItem)
         const renderItem = (i) => {
-            if (i.category) { // 點心類渲染
-                const daysLeft = Math.round((new Date(i.expiry.replace(/\//g, '-')) - new Date()) / 86400000);
-                return `
-                    <div class="food-item">
-                        <div style="flex:1;">
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <b style="font-size:1rem;">${i.brand}</b>
-                                <span class="status-badge bg-stock">${i.category.toUpperCase()}</span>
-                            </div>
-                            <div style="font-size:10px; color:#999; margin-top:4px;">📅 效期：${i.expiry} (剩 ${daysLeft} 天)</div>
-                            <div style="font-size:12px; font-weight:800; color:var(--primary); margin-top:5px;">剩餘：${i.remainCount} 份</div>
+        const isDone = i.status === '已吃完';
+        
+        // --- 點心類渲染 (TREAT STOCK & 歷史區) ---
+        if (i.category) { 
+            const daysLeft = Math.round((new Date(i.expiry.replace(/\//g, '-')) - today) / 86400000);
+            const progress = (i.remainCount / i.totalCount) * 100;
+            const icon = i.category === 'can' ? '🥫' : '🦴'; // 根據類別定義圖示
+
+            return `
+                <div class="food-item" style="${isDone ? 'opacity:0.6;' : ''}" onclick="openMemo(${i.id})">
+                    <div style="flex:1; padding-right:10px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size: 1.1rem; flex-shrink: 0;">${icon}</span>
+                            
+                            <b style="font-size:1rem; color:${!isDone && daysLeft < 30 ? 'var(--danger)' : 'inherit'}; line-height: 1.2;">
+                                ${i.brand}
+                            </b>
+                            
+                            <span class="status-badge" style="font-size: 9px; white-space: nowrap; background:${i.category==='can'?'#e3f2fd':'#fff3e0'}; color:${i.category==='can'?'#1976d2':'#ef6c00'}; padding: 1px 5px;">
+                                ${i.category === 'can' ? '罐頭' : '零食'}
+                            </span>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                            <button class="status-badge bg-eating" style="border:none; cursor:pointer;" onclick="consumeTreat(${i.id}, 1)">-1</button>
-                            ${i.category === 'can' ? `<button class="status-badge bg-eating" style="border:none; cursor:pointer; background:#bbdefb; color:#1976d2;" onclick="consumeTreat(${i.id}, 3)">-3</button>` : ''}
+                        
+                        ${!isDone ? `
+                        <div style="width:100%; height:4px; background:#eee; border-radius:2px; margin:8px 0;">
+                            <div style="width:${progress}%; height:100%; background:${daysLeft < 30 ? 'var(--danger)' : 'var(--secondary)'}; border-radius:2px;"></div>
                         </div>
-                    </div>`;
-            } else { // 主食類渲染 (維持原樣)
-                const statusClass = i.status === '食用中' ? 'bg-eating' : (i.status === '已吃完' ? 'bg-done' : 'bg-stock');
-                return `<div class="food-item" onclick="openMemo(${i.id})">
+                        ` : ''}
+
+                        <div style="font-size:10px; color:#999; margin-top: 4px;">
+                            ${isDone ? `🏁 完食日：${i.finishDate}` : `📅 效期：${i.expiry} (剩 ${daysLeft} 天)`}
+                        </div>
+                        <div style="font-size:12px; font-weight:800; color:var(--primary); margin-top:5px;">
+                            ${isDone ? '已吃完 ✨' : `剩餘：${i.remainCount} / ${i.totalCount} 份`}
+                        </div>
+                    </div>
+
+                    ${!isDone ? `
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <button class="status-badge bg-eating" style="border:none; height:32px; width:45px; justify-content:center; font-size:14px;" onclick="event.stopPropagation(); consumeTreat(${i.id}, 1)">-1</button>
+                        ${i.category === 'can' ? `<button class="status-badge" style="border:none; height:32px; width:45px; justify-content:center; font-size:14px; background:#bbdefb; color:#1976d2;" onclick="event.stopPropagation(); consumeTreat(${i.id}, 3)">-3</button>` : ''}
+                    </div>` : ''}
+                </div>`;
+        } 
+        
+        // --- 主食類渲染保持不變 ---
+        else {
+            const statusClass = i.status === '食用中' ? 'bg-eating' : (isDone ? 'bg-done' : 'bg-stock');
+            return `
+                <div class="food-item" onclick="openMemo(${i.id})">
                     <div style="flex:1;">
-                        <div style="display:flex;align-items:center;gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
-                        <div style="font-size:0.85rem;color:#777;">${i.flavor || ''} (${i.weightKg}kg)</div>
-                        <div style="font-size:10px; color:#999; margin-top:4px;">📅 ${i.expiry}</div>
+                        <div style="display:flex; align-items:center; gap:8px;"><b style="font-size:1rem;">${i.brand}</b><span class="status-badge ${statusClass}">${i.status}</span></div>
+                        <div style="font-size:0.85rem; color:#777;">${i.flavor || ''} (${i.weightKg}kg)</div>
+                        <div style="font-size:10px; color:#999; margin-top:4px;">
+                            ${isDone ? `🏁 完食日：${i.finishDate}` : `📅 效期：${i.expiry}`}
+                        </div>
                     </div>
                 </div>`;
-            }
-        };
+        }
+    };
 
-        document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完' && !i.category).map(renderItem).join('') || '無項目';
-        document.getElementById('treatList').innerHTML = db.filter(i => i.status !== '已吃完' && i.category).map(renderItem).join('') || '無點心庫存';
-        
-        const allDone = db.filter(i => i.status === '已吃完');
-        document.getElementById('archiveList').innerHTML = allDone.slice(0, 5).map(renderItem).join('');
-        
-        updateAIRecommendation();
-        updateTreatAI();
+    // 3. 執行分流渲染
+    document.getElementById('activeList').innerHTML = db.filter(i => i.status !== '已吃完' && !i.category).map(renderItem).join('') || '無主食庫存';
+    document.getElementById('archiveList').innerHTML = db.filter(i => i.status === '已吃完' && !i.category).slice(0, 5).map(renderItem).join('') || '無歷史紀錄';
+
+    // 點心分組渲染 (V3)
+    const currentTreats = db.filter(i => i.status !== '已吃完' && i.category);
+    let treatHtml = "";
+    const cans = currentTreats.filter(i => i.category === 'can');
+    const snacks = currentTreats.filter(i => i.category === 'snack');
+    if (cans.length) treatHtml += `<div style="font-size:12px; font-weight:800; color:#1976d2; margin:10px 0 5px 5px;">罐頭區</div>` + cans.map(renderItem).join('');
+    if (snacks.length) treatHtml += `<div style="font-size:12px; font-weight:800; color:#ef6c00; margin:15px 0 5px 5px;">零食區</div>` + snacks.map(renderItem).join('');
+    document.getElementById('treatList').innerHTML = treatHtml || '無點心庫存';
+    document.getElementById('treatArchiveList').innerHTML = db.filter(i => i.status === '已吃完' && i.category).slice(0, 5).map(renderItem).join('') || '無完食紀錄';
+    const treatHistory = db.filter(i => i.status === '已吃完' && i.category)
+                       .sort((a, b) => new Date(b.finishDate) - new Date(a.finishDate)); // 按完食日期排序
+
+    const historyContainer = document.getElementById('treatArchiveList');
+    if (historyContainer) {
+        // 渲染所有歷史紀錄（由外層 div 控制是否顯示）
+        historyContainer.innerHTML = treatHistory.map(renderItem).join('') || 
+            '<div style="text-align:center; color:#999; font-size:11px; padding:10px;">目前沒有完食紀錄</div>';
     }
+    // 4. 更新 AI 與分析
+    updateAIRecommendation();
+    updateTreatAI();
+    runAI();
+}
+
+function updateTreatAI() {
+    let treats = db.filter(i => i.status === '庫存' && i.category);
+    if (currentTreatFilter !== 'all') treats = treats.filter(i => i.category === currentTreatFilter);
     
+    const recArea = document.getElementById('treat-ai-rec');
+    if (!treats.length) { recArea.innerHTML = "該類別無庫存 ✨"; return; }
+
+    const scored = treats.map(item => {
+        const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
+        const pressure = item.remainCount / Math.max(daysLeft, 1);
+        return { item, pressure, daysLeft };
+    }).sort((a, b) => b.pressure - a.pressure);
+
+    let html = `<div style="display: flex; flex-direction: column; gap: 8px;">`;
+    scored.slice(0, 3).forEach((entry, idx) => {
+        const isUrgent = entry.daysLeft < 45 || entry.pressure > 0.4;
+        const color = isUrgent ? '#ff5252' : '#7986cb';
+        html += `
+            <div style="background: #faf7e0; padding: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);" onclick="scrollToTreat(${entry.item.id})">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div><b style="font-size: 13px;">${entry.item.category==='can'?'🥫':'🦴'} ${entry.item.brand}</b><span style="font-size: 10px; color:#999; display:block;">剩 ${entry.item.remainCount} 份 / 效期剩 ${Math.round(entry.daysLeft)} 天</span></div>
+                    <div style="text-align:right;"><span style="font-size: 10px; background:${isUrgent?'#ffebee':'#e8eaf6'}; color:${color}; padding: 2px 6px; border-radius: 4px; font-weight:800;">${isUrgent?'優先消耗':'一般'}</span><div style="font-size: 9px; color:${color}; margin-top: 4px; font-weight:700;">壓力: ${entry.pressure.toFixed(1)}</div></div>
+                </div>
+            </div>`;
+    });
+    recArea.innerHTML = html + `</div>`;
+}
+
+// 輔助跳轉
+function scrollToTreat(id) {
+    const el = document.querySelector(`[onclick*="openMemo(${id})"]`);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.background = "#fff9c4"; setTimeout(()=>el.style.background="", 1500); }
+}
+
     function addEntry() {
         const brand = document.getElementById('brand').value.trim();
         const weight = parseFloat(document.getElementById('weight').value);
@@ -444,6 +604,32 @@ function updateAIRecommendation() {
         saveAndRender();
         ['brand', 'flavor', 'weight', 'price', 'mfgDate', 'expiry'].forEach(id => document.getElementById(id).value = '');
     }
+
+let isTreatArchiveExpanded = false; // 記錄點心紀錄是否展開
+
+function toggleTreatArchive() {
+    isTreatArchiveExpanded = !isTreatArchiveExpanded;
+    const list = document.getElementById('treatArchiveList');
+    const btn = document.getElementById('treat-archive-toggle');
+    
+    if (isTreatArchiveExpanded) {
+        list.style.display = 'block';
+        btn.innerText = '折疊';
+    } else {
+        list.style.display = 'none';
+        btn.innerText = '展開';
+    }
+}
+
+function clearTreatHistory() {
+    if (confirm('確定要永久刪除所有點心完食紀錄嗎？此動作無法復原。')) {
+        // 篩選掉所有已吃完且有類別（點心）的項目
+        db = db.filter(i => !(i.status === '已吃完' && i.category));
+        saveAndRender();
+        alert('已清除紀錄');
+    }
+}
+
 
     function markAsOpen() {
         const id = document.getElementById('stockSelect').value;
