@@ -59,7 +59,7 @@
 
         .v2-active .modal-content { background: var(--card-v2); color: #fff; }
 
-        .modal-content textarea { min-height: 300px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
+        .modal-content textarea { min-height: 100px; font-family: 'Courier New', Courier, monospace; font-size: 13px; margin-top: 10px; line-height: 1.5; white-space: pre; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .expand-btn { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-v2); color: var(--ai-yellow); border-radius: 12px; font-size: 12px; margin-top: 10px; cursor: pointer; }
         .warning-text { color: var(--danger) !important; font-weight: 800 !important; }
@@ -95,18 +95,45 @@
 </head>
 <body id="main-body">
 
-<div id="memoModal"><div class="modal-content">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h3 id="modalTitle" style="margin:0;">編輯</h3>
-            <p id="modalSubTitle" style="font-size:0.8rem; color:#999; margin:5px 0;"></p>
+<div id="memoModal" class="modal">
+    <div class="modal-content v1-card" style="width: 90%; max-width: 380px; padding: 25px 20px !important;">
+        <div style="text-align: center; margin-bottom: 18px;">
+            <div id="modalTitle" style="font-size: 18px; font-weight: 900;">品項名稱</div>
+            <div id="modalSubTitle" style="font-size: 11px; color: #aaa;">EDIT DETAILS</div>
         </div>
-        <button onclick="closeModal()" style="background:none; border:none; font-size:24px; color:#999;">✕</button>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+                <label style="font-size: 11px; color: var(--primary); font-weight: 800;">品名 / 口味</label>
+                <input type="text" id="edit-brand-flavor" style="width: 100%; margin-top: 4px;">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1.2;">
+                    <label style="font-size: 11px; color: var(--primary); font-weight: 800;">有效期限</label>
+                    <input type="text" id="edit-expiry" inputmode="numeric" onkeyup="formatDate(this)" style="width: 100%; margin-top: 4px;">
+                </div>
+                <div id="edit-count-sector" style="flex: 0.8; display: none;">
+                    <label style="font-size: 11px; color: var(--primary); font-weight: 800;">剩餘數量</label>
+                    <input type="number" id="edit-remain" style="width: 100%; margin-top: 4px;">
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 11px; color: var(--primary); font-weight: 800;">備註 (Memo)</label>
+                <textarea id="memoInput" placeholder="在此輸入..." style="width: 100%; height: 55px; border: 1px solid #f0f0f0; border-radius: 10px; padding: 10px; font-size: 13px; resize: none; background: #fafafa; margin-top: 4px;"></textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 25px;">
+            <button id="modalSaveBtn" class="btn btn-primary" style="flex: 2;">儲存變更</button>
+            <button id="deleteBtn" style="flex: 1; background: #fff5f5; color: #ff5252; border: 1px solid #ffebeb; border-radius: 12px; font-weight: 800;">刪除</button>
+        </div>
+        <div style="text-align: center; margin-top: 15px;">
+            <span onclick="closeModal()" style="color: #bbb; font-size: 12px; cursor: pointer;">取消返回</span>
+        </div>
     </div>
-    <textarea id="memoInput" placeholder="在此輸入..."></textarea>
-    <button id="modalSaveBtn" class="btn btn-primary" style="margin-top:15px;">儲存</button>
-    <button id="deleteBtn" style="background:none; border:none; color:var(--danger); width:100%; margin-top:15px; font-size:13px; cursor:pointer; font-weight:600;">刪除此筆紀錄</button>
-</div></div>
+</div>
 
 <nav class="nav-tabs">
     <div id="btn-v1" class="tab-btn active" onclick="showTab('v1')">INVENTORY</div>
@@ -156,9 +183,8 @@
   <div id="page-v3" class="tab-page">
         <div class="v1-card">
             <div class="tag-sticker v1-tag" style="background: #7986cb;">RANK</div>
-            <div id="ai-suggestion-area" class="ai-recommendation-box" style="background: white; border-color: #f7f7e1;">
+            <div id="ai-suggestion-area" class="ai-recommendation-box" style="background: white;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                      <div style="font-size: 16px; font-weight: 900; color: #ff0000;">🚨 Top 3 消耗建議</div>
                       <div id="treat-ai-filter" style="display: flex; gap: 4px; background: rgba(0,0,0,0.05); padding: 2px; border-radius: 8px;">
                           <button onclick="setTreatFilter('can')" id="f-can" class="filter-mini-btn">罐頭</button>
                           <button onclick="setTreatFilter('snack')" id="f-snack" class="filter-mini-btn">零食</button>
@@ -194,24 +220,17 @@
           <div id="treatList"></div>
       </div>
 
-      <div class="v1-card" style="padding-top: 15px !important;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <div class="tag-sticker v1-tag" style="background: #90a4ae; position: static;">Treat History</div>
-              
-              <div style="display: flex; gap: 12px; align-items: center;">
-                  <button onclick="clearTreatHistory()" style="background: #f0f0f0; border: none; color: #666; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 6px;">
-                      清除
-                  </button>
-                  <button onclick="toggleTreatArchive()" id="treat-archive-toggle" style="background: #f0f0f0; border: none; color: #666; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 10px; border-radius: 6px;">
-                      展開
-                  </button>
-              </div>
-          </div>
-
-          <div id="treatArchiveList" style="display: none; border-top: 1px dashed #eee; margin-top: 5px;">
-              </div>
-      </div>
-  </div>
+      <div class="v1-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="tag-sticker" style="background: #90a4ae;">History</div>
+            <div style="display: flex; gap: 15px;">
+                <span onclick="clearTreatHistory()" style="color: #bbb; font-size: 12px; cursor: pointer;">清除</span>
+                <span onclick="toggleTreatArchive()" id="treat-archive-toggle" style="color: var(--primary); font-size: 12px; font-weight: 800; cursor: pointer;">展開</span>
+            </div>
+        </div>
+        <div id="treatArchiveList" style="display: none; margin-top: 15px;"></div>
+    </div>
+</div>
 
   <style>
       .filter-mini-btn { border: none; background: none; font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: #888; font-weight: 700; }
@@ -405,57 +424,70 @@ function updateAIRecommendation() {
     }
 
 function updateTreatAI() {
-    const treats = db.filter(i => i.status === '庫存' && i.category);
-    const recArea = document.getElementById('treat-ai-rec');
+    let treats = db.filter(i => i.status === '庫存' && i.category);
+    if (currentTreatFilter !== 'all') treats = treats.filter(i => i.category === currentTreatFilter);
     
-    if (treats.length === 0) {
-        recArea.innerHTML = "點心庫存安全 ✨";
-        return;
+    const recArea = document.getElementById('treat-ai-rec');
+    if (!treats.length) { 
+        recArea.innerHTML = `<div style="text-align:center; padding:20px; color:#999; font-size:12px;">該類別目前無庫存 ✨</div>`; 
+        return; 
     }
 
-    // 計算壓力值並排序
     const scored = treats.map(item => {
         const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
-        // 壓力公式：剩餘份數 / 剩餘天數 (天數最少為 1 避免除以 0)
         const pressure = item.remainCount / Math.max(daysLeft, 1);
         return { item, pressure, daysLeft };
     }).sort((a, b) => b.pressure - a.pressure);
 
-    // 取前三名
-    const top3 = scored.slice(0, 3);
-    
-    let html = `<div style="display: flex; flex-direction: column; gap: 8px;">`;
-    
-    top3.forEach((entry, index) => {
-        const isUrgent = entry.daysLeft < 60 || entry.pressure > 0.5;
-        const color = isUrgent ? '#ff5252' : '#ffa726';
+    let html = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+    scored.slice(0, 3).forEach((entry) => {
+        const isUrgent = entry.daysLeft < 45 || entry.pressure > 0.4;
+        const color = isUrgent ? '#ff5252' : '#7986cb';
         const icon = entry.item.category === 'can' ? '🥫' : '🦴';
         
         html += `
-            <div style="background: rgba(255,255,255,0.5); padding: 8px; border-radius: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <b style="font-size: 13px;">${index + 1}. ${icon} ${entry.item.brand}</b>
-                    <span style="font-size: 10px; background: ${color}; color: white; padding: 1px 5px; border-radius: 4px;">
-                        ${isUrgent ? '優先消耗' : '建議開啟'}
-                    </span>
+            <div style="background:#ededc7; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative;">
+                <div onclick="scrollToTreat(${entry.item.id})" style="cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <b style="font-size: 14px; display:block; margin-bottom:2px;">${icon} ${entry.item.brand}</b>
+                            <span style="font-size: 11px; color: #999;">效期剩 ${Math.round(entry.daysLeft)} 天 / 剩 ${entry.item.remainCount} 份</span>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="font-size: 10px; background: ${isUrgent ? '#ffebee' : '#f0f2f5'}; color: ${color}; padding: 2px 6px; border-radius: 4px; font-weight:800;">
+                                ${isUrgent ? '優先消耗' : '建議消耗'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div style="font-size: 11px; color: #666; margin-top: 3px;">
-                    理由：剩 ${Math.round(entry.daysLeft)} 天，平均需每日消耗 ${entry.pressure.toFixed(1)} 份
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #f9f9f9;">
+                    <button onclick="consumeTreat(${entry.item.id}, 1)" style="border: 1px solid #eee; background: #fff; color: #666; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+                        消耗 -1
+                    </button>
+                    ${entry.item.category === 'can' ? `
+                    <button onclick="consumeTreat(${entry.item.id}, 3)" style="border: 1px solid #e3f2fd; background: #e3f2fd; color: #1976d2; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+                        消耗 -3
+                    </button>` : ''}
+                    <button onclick="openMemo(${entry.item.id})" style="border: 1px solid #eee; background: #fff; color: #aaa; font-size: 11px; padding: 4px 8px; border-radius: 6px;">
+                        詳情
+                    </button>
                 </div>
             </div>
         `;
     });
-
     html += `</div>`;
     recArea.innerHTML = html;
 }
     
-let currentTreatFilter = 'all'; // 全域變數記錄點心篩選狀態
+let currentTreatFilter = 'snack'; // 預設改為顯示「罐頭」
 
 function setTreatFilter(type) {
     currentTreatFilter = type;
+    // 更新按鈕樣式
     document.querySelectorAll('.filter-mini-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`f-${type}`).classList.add('active');
+    // 重新運行分析
     updateTreatAI();
 }
 
@@ -561,29 +593,50 @@ function saveAndRender() {
 }
 
 function updateTreatAI() {
-    let treats = db.filter(i => i.status === '庫存' && i.category);
-    if (currentTreatFilter !== 'all') treats = treats.filter(i => i.category === currentTreatFilter);
-    
-    const recArea = document.getElementById('treat-ai-rec');
-    if (!treats.length) { recArea.innerHTML = "該類別無庫存 ✨"; return; }
+    // 這裡直接根據 currentTreatFilter (can 或 snack) 篩選
+    const treats = db.filter(i => i.status === '庫存' && i.category === currentTreatFilter);
 
+    const recArea = document.getElementById('treat-ai-rec');
+    if (treats.length === 0) {
+        const typeName = currentTreatFilter === 'can' ? '罐頭' : '零食';
+        recArea.innerHTML = `<div style="text-align:center; padding:15px; color:#999; font-size:12px;">目前沒有${typeName}庫存 ✨</div>`;
+        return;
+    }
+
+    // 計算壓力值並排序
     const scored = treats.map(item => {
         const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
         const pressure = item.remainCount / Math.max(daysLeft, 1);
         return { item, pressure, daysLeft };
     }).sort((a, b) => b.pressure - a.pressure);
 
-    let html = `<div style="display: flex; flex-direction: column; gap: 8px;">`;
-    scored.slice(0, 3).forEach((entry, idx) => {
+    // 渲染 Top 3 (剩下的渲染代碼與之前相同)
+    let html = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+    scored.slice(0, 3).forEach((entry) => {
         const isUrgent = entry.daysLeft < 45 || entry.pressure > 0.4;
         const color = isUrgent ? '#ff5252' : '#7986cb';
+        const icon = currentTreatFilter === 'can' ? '🥫' : '🦴';
+        
         html += `
-            <div style="background: #faf7e0; padding: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);" onclick="scrollToTreat(${entry.item.id})">
+            <div style="background: rgba(255, 247, 5, 0.05); padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div><b style="font-size: 13px;">${entry.item.category==='can'?'🥫':'🦴'} ${entry.item.brand}</b><span style="font-size: 10px; color:#999; display:block;">剩 ${entry.item.remainCount} 份 / 效期剩 ${Math.round(entry.daysLeft)} 天</span></div>
-                    <div style="text-align:right;"><span style="font-size: 10px; background:${isUrgent?'#ffebee':'#e8eaf6'}; color:${color}; padding: 2px 6px; border-radius: 4px; font-weight:800;">${isUrgent?'優先消耗':'一般'}</span><div style="font-size: 9px; color:${color}; margin-top: 4px; font-weight:700;">壓力: ${entry.pressure.toFixed(1)}</div></div>
+                    <div onclick="scrollToTreat(${entry.item.id})" style="flex: 1; cursor: pointer;">
+                        <b style="font-size: 14px; display:block; margin-bottom:2px;">${icon} ${entry.item.brand}</b>
+                        <span style="font-size: 11px; color: #999;">效期剩 ${Math.round(entry.daysLeft)} 天 / 剩 ${entry.item.remainCount} 份</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size: 10px; background: ${isUrgent ? '#ffebee' : '#f0f2f5'}; color: ${color}; padding: 2px 6px; border-radius: 4px; font-weight:800;">
+                            ${isUrgent ? '優先消耗' : '建議'}
+                        </span>
+                    </div>
                 </div>
-            </div>`;
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #f9f9f9;">
+                    <button onclick="consumeTreat(${entry.item.id}, 1)" style="border: 1px solid #eee; background: #fff; color: #666; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">-1</button>
+                    ${currentTreatFilter === 'can' ? `<button onclick="consumeTreat(${entry.item.id}, 3)" style="border: 1px solid #e3f2fd; background: #e3f2fd; color: #1976d2; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700;">-3</button>` : ''}
+                    <button onclick="openMemo(${entry.item.id})" style="border: 1px solid #eee; background: #fff; color: #aaa; font-size: 11px; padding: 4px 8px; border-radius: 6px;">詳情</button>
+                </div>
+            </div>
+        `;
     });
     recArea.innerHTML = html + `</div>`;
 }
@@ -645,108 +698,207 @@ function clearTreatHistory() {
         saveAndRender();
     }
 
-    function openMemo(id) {
-            // ✨ 新增這行：進入一般備註時，移除還原用的工具鈕
-            const oldTools = document.getElementById('modal-tools');
-            if (oldTools) oldTools.remove();
-    
-            const item = db.find(i => i.id == id);
-            document.getElementById('modalTitle').innerText = item.brand;
-            document.getElementById('modalSubTitle').innerText = item.flavor || "編輯紀錄";
-            document.getElementById('memoInput').value = item.memo || "";
-            document.getElementById('memoModal').style.display = 'flex';
-            document.getElementById('deleteBtn').style.display = 'block';
-            
-            document.getElementById('modalSaveBtn').onclick = function() {
-                db.find(i => i.id == id).memo = document.getElementById('memoInput').value;
-                closeModal(); saveAndRender();
-            };
-            document.getElementById('deleteBtn').onclick = function() {
-                if(confirm('確定刪除？')) { db = db.filter(i => i.id != id); closeModal(); saveAndRender(); }
-            };
-        }
-    
-    function openRestoreModal() {
-            const modalTitle = document.getElementById('modalTitle');
-            const modalSubTitle = document.getElementById('modalSubTitle');
-            const memoInput = document.getElementById('memoInput');
-            const modalSaveBtn = document.getElementById('modalSaveBtn');
-            const deleteBtn = document.getElementById('deleteBtn');
-            
-            // 1. 設定標題與提示
-            modalTitle.innerText = "系統還原 / 備份";
-            modalSubTitle.innerText = "請清空後貼上新的 JSON 資料";
-            
-            // 2. 顯示目前的資料（格式化）
-            memoInput.value = JSON.stringify(db, null, 4);
-            
-            // 3. 隱藏原本備註用的「刪除」按鈕
-            deleteBtn.style.display = 'none';
-    
-            // 4. 移除舊的工具列（如果有的話），確保每次重新生成
-            const oldTools = document.getElementById('modal-tools');
-            if (oldTools) oldTools.remove();
-    
-            // 5. 生成「還原專用」的工具按鈕（清除、貼上）
-            const toolBar = document.createElement('div');
-            toolBar.id = 'modal-tools';
-            toolBar.style = "display:flex; gap:10px; margin-top:10px; margin-bottom:10px;";
-            toolBar.innerHTML = `
-                <button class="btn" style="background:none; border:none; color:var(--ai-yellow); flex:1; font-size:13px; " onclick="document.getElementById('memoInput').value=''">一鍵清空</button>
-                <button class="btn" style="background:none; border:none; color:var(--ai-yellow); flex:1; font-size:13px; " onclick="pasteToModal()">一鍵貼上</button>
-                
-            `;
-            // 將這兩個按鈕插在輸入框下面
-            modalSaveBtn.parentNode.appendChild(toolBar);
-    
-            // 6. 顯示彈窗
-            document.getElementById('memoModal').style.display = 'flex';
-    
-            // 7. 定義還原的儲存邏輯
-            modalSaveBtn.onclick = function() {
-                try {
-                    const content = memoInput.value.trim();
-                    if(!content) return alert("內容不能為空");
-                    const parsed = JSON.parse(content);
-                    if(Array.isArray(parsed)) { 
-                        db = parsed; 
-                        saveAndRender(); 
-                        closeModal(); 
-                        alert("✅ 系統已成功還原！"); 
-                    }
-                } catch(e) { alert("❌ JSON 格式錯誤"); }
-            };
-        }
-    
-        // 輔助功能：一鍵貼上
-        async function pasteToModal() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('memoInput').value = text;
-            } catch (err) {
-                alert("請手動長按貼上內容");
-            }
-        }
+function openMemo(id) {
+    const item = db.find(i => i.id == id);
+    if (!item) return;
 
-    function closeModal() { document.getElementById('memoModal').style.display = 'none'; }
+    // --- 核心：確保編輯 UI 是顯示狀態 ---
+    toggleEditFields(true); 
+    
+    const modal = document.getElementById('memoModal');
+    document.getElementById('modalTitle').innerText = item.brand;
+    document.getElementById('modalSubTitle').innerText = "編輯品項資訊";
+    
+    // 填入資料
+    document.getElementById('edit-brand-flavor').value = item.category ? item.brand : `${item.brand} ${item.flavor || ''}`;
+    document.getElementById('edit-expiry').value = item.expiry;
+    document.getElementById('memoInput').value = item.memo || "";
+    document.getElementById('memoInput').style.height = "55px"; // 恢復短框
 
-    function runAI() {
-        const dailyG = Math.round(getDailyUsage());
-        document.getElementById('ai-avg-usage-v2').innerText = dailyG;
-        const currentTotalKg = db.filter(i => i.status !== '已吃完').reduce((acc, i) => acc + getDynamicRemaining(i, dailyG), 0);
-        const totalDays = Math.round((currentTotalKg * 1000) / dailyG);
-        document.getElementById('ai-total-kg').innerText = currentTotalKg.toFixed(2) + " kg";
-        const fDate = new Date(); fDate.setDate(fDate.getDate() + totalDays);
-        document.getElementById('ai-finish-date-big').innerText = `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
-        document.getElementById('ai-days-left-tag').innerText = totalDays;
-        document.getElementById('ai-progress-bar').style.width = Math.min(100, (totalDays / 60) * 100) + "%";
-        const targetVal = document.getElementById('ai-target-date').value;
-        if(targetVal.length === 10) {
-            const gap = ((((new Date(targetVal.replace(/\//g, '-')) - new Date()) / 86400000) * dailyG) / 1000 - currentTotalKg).toFixed(2);
-            document.getElementById('ai-refill-gap').innerHTML = gap > 0 ? `尚差 ${gap} kg` : "✅ 庫存充足！";
-        }
+    // 點心類別判斷 (數量)
+    const countSector = document.getElementById('edit-count-sector');
+    if (item.category) {
+        countSector.style.display = 'block';
+        document.getElementById('edit-remain').value = item.remainCount;
+    } else {
+        countSector.style.display = 'none';
     }
 
+    document.getElementById('deleteBtn').style.display = 'block';
+    document.getElementById('modalSaveBtn').innerText = "儲存修改";
+
+    // 儲存按鈕：更新邏輯
+    document.getElementById('modalSaveBtn').onclick = function() {
+        item.expiry = document.getElementById('edit-expiry').value;
+        item.memo = document.getElementById('memoInput').value;
+        if (item.category) {
+            item.brand = document.getElementById('edit-brand-flavor').value;
+            item.remainCount = parseInt(document.getElementById('edit-remain').value) || 0;
+            if (item.remainCount > 0) item.status = '庫存';
+        }
+        saveAndRender();
+        closeModal();
+    };
+
+    modal.style.display = 'flex';
+}
+    
+  function openRestoreModal() {
+    // --- 核心：隱藏編輯 UI ---
+    toggleEditFields(false); 
+
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubTitle = document.getElementById('modalSubTitle');
+    const memoInput = document.getElementById('memoInput');
+    const modalSaveBtn = document.getElementById('modalSaveBtn');
+    
+    modalTitle.innerText = "⚙️ 系統還原中心";
+    modalSubTitle.innerText = "請清空後貼上 JSON 代碼";
+    
+    memoInput.value = ""; 
+    memoInput.style.height = "200px"; // 變大框
+    
+    document.getElementById('deleteBtn').style.display = 'none';
+    
+    // 工具列處理 (清空/貼上)
+    const oldTools = document.getElementById('modal-tools');
+    if (oldTools) oldTools.remove();
+    const toolBar = document.createElement('div');
+    toolBar.id = 'modal-tools';
+    toolBar.style = "display:flex; gap:10px; margin:10px 0;";
+    toolBar.innerHTML = `
+        <button class="btn" style="background:#eee; flex:1; font-size:12px;" onclick="document.getElementById('memoInput').value=''">清空</button>
+        <button class="btn" style="background:#e8eaf6; color:var(--primary); flex:1; font-size:12px;" onclick="pasteToModal()">貼上</button>
+    `;
+    memoInput.parentNode.insertBefore(toolBar, memoInput.nextSibling);
+
+    modalSaveBtn.innerText = "執行還原";
+    modalSaveBtn.onclick = function() {
+    try {
+        const parsed = JSON.parse(memoInput.value.trim());
+        if(Array.isArray(parsed)) {
+            if(confirm("確定要覆蓋現有數據嗎？")) { 
+                db = parsed; 
+                saveAndRender(); 
+                closeModal(); 
+                // --- 加入這行提醒 ---
+                alert("✅ 數據已成功匯入！"); 
+            }
+        } else {
+            alert("格式錯誤：匯入內容必須是陣列 (Array)");
+        }
+    } catch(e) { 
+        alert("解析失敗：請確保貼上的是正確的 JSON 格式"); 
+    }
+};
+
+    document.getElementById('memoModal').style.display = 'flex';
+}
+
+function toggleEditFields(show) {
+    // 這裡列出所有在還原時需要「消失」的編輯欄位
+    const fields = [
+        document.getElementById('edit-brand-flavor'),
+        document.getElementById('edit-expiry'),
+        document.getElementById('edit-remain'),
+        document.getElementById('edit-count-sector')
+    ];
+    
+    // 還有它們對應的 Label
+    const labels = document.querySelectorAll('#memoModal label');
+
+    const displayVal = show ? '' : 'none';
+    fields.forEach(f => { if(f) f.style.display = displayVal; });
+    labels.forEach(l => { l.style.display = displayVal; });
+    
+    // 如果是隱藏模式，也要把工具列移除（避免正常編輯時出現）
+    if (show) {
+        const oldTools = document.getElementById('modal-tools');
+        if (oldTools) oldTools.remove();
+    }
+}
+
+// 修改原本的 closeModal
+function closeModal() {
+    document.getElementById('memoModal').style.display = 'none';
+}
+
+
+function closeRestoreModal() {
+    document.getElementById('restoreModal').style.display = 'none';
+}
+
+function processRestore() {
+    const rawData = document.getElementById('restoreInput').value.trim();
+    if (!rawData) return alert("請貼上代碼");
+
+    try {
+        const parsed = JSON.parse(rawData);
+        if (Array.isArray(parsed) && confirm("確定要覆蓋現有數據嗎？")) {
+            db = parsed;
+            saveAndRender();
+            closeRestoreModal();
+            alert("還原成功！");
+        } else {
+            alert("格式不正確");
+        }
+    } catch (e) {
+        alert("解析失敗，請確認代碼完整性");
+    }
+}
+
+function runAI() {
+    // 1. 取得平均日用量，確保為數字，避免除以 0
+    const dailyG = Math.max(1, Math.round(getDailyUsage())); 
+    document.getElementById('ai-avg-usage-v2').innerText = dailyG;
+
+    // 2. 計算總剩餘公斤數
+    // 使用 Number() 強制轉換，確保加總過程不會變成字串相加
+    const rawTotalKg = db
+        .filter(i => i.status !== '已吃完')
+        .reduce((acc, i) => {
+            const rem = getDynamicRemaining(i, dailyG);
+            return acc + (Number(rem) || 0);
+        }, 0);
+
+    // 3. 關鍵修正：確保 totalKg 一定是數字型態
+    const totalKg = Number(rawTotalKg) || 0;
+    
+    // 現在可以安全地使用 toFixed(2) 了
+    const weightDisplay = document.getElementById('ai-weight-display');
+    if (weightDisplay) {
+        weightDisplay.innerText = totalKg.toFixed(2) + " kg";
+    }
+
+    // 4. 計算預計吃完的天數
+    const totalDays = Math.round((totalKg * 1000) / dailyG) || 0;
+    document.getElementById('ai-total-kg').innerText = totalKg.toFixed(2) + " kg";
+    
+    const fDate = new Date(); 
+    fDate.setDate(fDate.getDate() + totalDays);
+    
+    document.getElementById('ai-finish-date-big').innerText = 
+        `${fDate.getFullYear()}/${String(fDate.getMonth()+1).padStart(2,'0')}/${String(fDate.getDate()).padStart(2,'0')}`;
+    
+    document.getElementById('ai-days-left-tag').innerText = totalDays;
+    
+    // 5. 更新進度條
+    const progressBar = document.getElementById('ai-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = Math.min(100, (totalDays / 60) * 100) + "%";
+    }
+    
+    // 6. 目標日期補貨分析
+    const targetInput = document.getElementById('ai-target-date');
+    const refillGap = document.getElementById('ai-refill-gap');
+    if(targetInput && targetInput.value.length === 10 && refillGap) {
+        const targetDate = new Date(targetInput.value.replace(/\//g, '-'));
+        const daysToTarget = (targetDate - new Date()) / 86400000;
+        const requiredKg = (daysToTarget * dailyG) / 1000;
+        const gap = (requiredKg - totalKg).toFixed(2);
+        refillGap.innerHTML = gap > 0 ? `尚差 ${gap} kg` : "✅ 庫存充足！";
+    }
+}
     function exportData() { 
     // JSON.stringify 的第三個參數 '2' 代表縮排 2 個空格
     const prettyJSON = JSON.stringify(db, null, 2); 
