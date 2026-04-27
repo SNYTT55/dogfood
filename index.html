@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Food Center V2</title>
+    <title>Food Center</title>
     <style>
         :root {
             --primary: #d2691e; --secondary: #2e7d32; --blue: #007aff; --danger: #ff5252;
@@ -498,8 +498,12 @@ function saveAndRender() {
 
     // 1. 主食下拉選單
     const stocks = db.filter(i => i.status === '庫存' && !i.category);
-    document.getElementById('stockSelect').innerHTML = stocks.length ? 
-        stocks.map(i => `<option value="${i.id}">${i.brand} (${i.expiry})</option>`).join('') : '<option value="">無庫存</option>';
+document.getElementById('stockSelect').innerHTML = stocks.length ? 
+    stocks.map(i => {
+        // 優先顯示口味，如果沒填口味則顯示品牌
+        const label = i.flavor ? `${i.flavor} (${i.brand})` : i.brand;
+        return `<option value="${i.id}">${label} - ${i.expiry}</option>`;
+    }).join('') : '<option value="">無庫存</option>';
 
     // 2. 核心渲染組件 (renderItem)
         const renderItem = (i) => {
