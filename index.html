@@ -636,8 +636,6 @@ document.getElementById('stockSelect').innerHTML = stocks.length ?
 
 function updateTreatAI() {
     // 這裡直接根據 currentTreatFilter (can 或 snack) 篩選
-    console.log("當前篩選類別:", currentTreatFilter);
-    console.log("資料庫內所有點心:", db.filter(i => i.category));
     const treats = db.filter(i => i.status === '庫存' && i.category === currentTreatFilter);
 
     const recArea = document.getElementById('treat-ai-rec');
@@ -646,16 +644,21 @@ function updateTreatAI() {
         recArea.innerHTML = `<div style="text-align:center; padding:15px; color:#999; font-size:12px;">目前沒有${typeName}庫存 ✨</div>`;
         return;
     }
-    const targetDate = new Date(item.expiry.replace(/\//g, '-'));
-    if (isNaN(targetDate.getTime())) {
-        return { item, pressure: 0, daysLeft: 999 }; // 給予預設值，不參與緊急排序
-    }
+
     // 計算壓力值並排序
     const scored = treats.map(item => {
-        const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
-        const pressure = item.remainCount / Math.max(daysLeft, 1);
-        return { item, pressure, daysLeft };
-    }).sort((a, b) => b.pressure - a.pressure);
+            // 安全處理日期
+            const expStr = item.expiry ? item.expiry.replace(/\//g, '-') : "";
+            const targetDate = new Date(expStr);
+            
+            let daysLeft = 999;
+            if (!isNaN(targetDate.getTime())) {
+                daysLeft = (targetDate - new Date()) / 86400000;
+            }
+
+            const pressure = item.remainCount / Math.max(daysLeft, 1);
+            return { item, pressure, daysLeft };
+        }).sort((a, b) => b.pressure - a.pressure);
 
     // 渲染 Top 3 (剩下的渲染代碼與之前相同)
     let html = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
