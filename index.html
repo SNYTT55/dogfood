@@ -918,10 +918,6 @@ function runAI() {
     if (weightDisplay) {
         weightDisplay.innerText = totalKg.toFixed(2) + " kg";
     }
-    const targetDate = new Date(item.expiry.replace(/\//g, '-'));
-    if (isNaN(targetDate.getTime())) {
-        return { item, pressure: 0, daysLeft: 999 }; // 給予預設值，不參與緊急排序
-    }
     // 4. 計算預計吃完的天數
     const totalDays = Math.round((totalKg * 1000) / dailyG) || 0;
     document.getElementById('ai-total-kg').innerText = totalKg.toFixed(2) + " kg";
@@ -943,12 +939,31 @@ function runAI() {
     // 6. 目標日期補貨分析
     const targetInput = document.getElementById('ai-target-date');
     const refillGap = document.getElementById('ai-refill-gap');
-    if(targetInput && targetInput.value.length === 10 && refillGap) {
-        const targetDate = new Date(targetInput.value.replace(/\//g, '-'));
+
+    // 💡 修正點：檢查 targetInput 是否存在，且使用 targetInput.value 而不是 item.expiry
+    if(targetInput && targetInput.value.length >= 10 && refillGap) {
+        const rawVal = targetInput.value;
+        const formattedDate = rawVal.replace(/\//g, '-');
+        const targetDate = new Date(formattedDate);
+        
+        // 守門員檢查：確保輸入的是有效日期
+        const parts = formattedDate.split('-');
+        const y = parseInt(parts[0]);
+        const m = parseInt(parts[1]);
+        const d = parseInt(parts[2]);
+        const testDate = new Date(y, m - 1, d);
+
+        if (isNaN(targetDate.getTime()) || testDate.getMonth() !== m - 1) {
+            refillGap.innerHTML = "<span style='color:#ff5252;'>日期格式無效</span>";
+            return;
+        }
+
         const daysToTarget = (targetDate - new Date()) / 86400000;
         const requiredKg = (daysToTarget * dailyG) / 1000;
+        
+        // totalKg 是在 runAI 前半段算出來的總量
         const gap = (requiredKg - totalKg).toFixed(2);
-        refillGap.innerHTML = gap > 0 ? `尚差 ${gap} kg` : "✅ 庫存充足！";
+        refillGap.innerHTML = gap > 0 ? `尚差 <b style="color:#ff5252;">${gap}</b> kg` : "✅ 庫存充足！";
     }
 }
     function exportData() { 
