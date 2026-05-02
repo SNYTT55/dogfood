@@ -636,6 +636,8 @@ document.getElementById('stockSelect').innerHTML = stocks.length ?
 
 function updateTreatAI() {
     // 這裡直接根據 currentTreatFilter (can 或 snack) 篩選
+    console.log("當前篩選類別:", currentTreatFilter);
+    console.log("資料庫內所有點心:", db.filter(i => i.category));
     const treats = db.filter(i => i.status === '庫存' && i.category === currentTreatFilter);
 
     const recArea = document.getElementById('treat-ai-rec');
