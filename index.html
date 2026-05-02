@@ -293,6 +293,26 @@
     let isArchiveExpanded = false;
 
     // --- 核心導覽與顯示 ---
+
+    function isValidDateCheck(dateStr) {
+    if (!dateStr || dateStr.length < 10) return { valid: false };
+    
+    const parts = dateStr.split('/');
+    const y = parseInt(parts[0]);
+    const m = parseInt(parts[1]);
+    const d = parseInt(parts[2]);
+
+    const testDate = new Date(y, m - 1, d);
+
+    // 核心邏輯：如果 JS 幫你進位了（例如 02/31 變成 03/03），
+    // 那麼 testDate 的月份就不會等於你輸入的 m - 1
+    if (testDate.getFullYear() !== y || testDate.getMonth() !== m - 1 || testDate.getDate() !== d) {
+        return { valid: false, msg: "日期不存在" };
+    }
+    return { valid: true };
+}
+
+    
     function showTab(tab) {
         ['page-v1', 'page-v2', 'page-v3'].forEach(p => document.getElementById(p).classList.remove('active'));
         ['btn-v1', 'btn-v2', 'btn-v3'].forEach(b => {
@@ -313,12 +333,26 @@
         if (tab === 'v3') updateTreatAI();
     }
 
-    function formatDate(obj) {
-        let v = obj.value.replace(/\D/g, '').substring(0, 8);
-        if (v.length > 4 && v.length <= 6) v = v.substring(0, 4) + '/' + v.substring(4);
-        else if (v.length > 6) v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6);
-        obj.value = v;
+function formatDate(obj) {
+    let v = obj.value.replace(/\D/g, '').substring(0, 8);
+    if (v.length > 4 && v.length <= 6) {
+        v = v.substring(0, 4) + '/' + v.substring(4);
+    } else if (v.length > 6) {
+        v = v.substring(0, 4) + '/' + v.substring(4, 6) + '/' + v.substring(6);
     }
+    obj.value = v;
+
+    // 當輸入滿 8 碼時，立即進行閃電檢查
+    if (v.length === 10) {
+        const check = isValidDateCheck(v);
+        if (!check.valid) {
+            obj.style.color = "red"; // 錯誤時文字變紅
+            // 這裡可以選擇是否要 alert，或是在旁邊顯示小字
+        } else {
+            obj.style.color = "inherit"; // 正常則恢復顏色
+        }
+    }
+}
 
     function getTodayStr() {
         const d = new Date();
@@ -408,7 +442,11 @@ function updateAIRecommendation() {
         const name = document.getElementById('treat-name').value;
         const count = parseInt(document.getElementById('treat-count').value);
         const expiry = document.getElementById('treat-expiry').value;
-        if (!name || isNaN(count) || expiry.length < 10) return alert("請填寫品名、數量與效期");
+            if (!name || isNaN(count) || expiry.length < 10) return alert("請填寫品名、數量與效期");
+        const check = isValidDateCheck(expiry);
+            if (!check.valid) {
+                return alert("⚠️ 效期錯誤：請確認點心效期是否正確（YYYY/MM/DD）");
+            }
         db.push({ id: Date.now(), category: type, brand: name, remainCount: count, totalCount: count, expiry: expiry, status: '庫存', memo: "" });
         saveAndRender();
         ['treat-name', 'treat-count', 'treat-expiry'].forEach(id => document.getElementById(id).value = '');
@@ -606,7 +644,10 @@ function updateTreatAI() {
         recArea.innerHTML = `<div style="text-align:center; padding:15px; color:#999; font-size:12px;">目前沒有${typeName}庫存 ✨</div>`;
         return;
     }
-
+    const targetDate = new Date(item.expiry.replace(/\//g, '-'));
+    if (isNaN(targetDate.getTime())) {
+        return { item, pressure: 0, daysLeft: 999 }; // 給予預設值，不參與緊急排序
+    }
     // 計算壓力值並排序
     const scored = treats.map(item => {
         const daysLeft = (new Date(item.expiry.replace(/\//g, '-')) - new Date()) / 86400000;
@@ -656,6 +697,10 @@ function scrollToTreat(id) {
         const weight = parseFloat(document.getElementById('weight').value);
         const expiry = document.getElementById('expiry').value;
         if(!brand || isNaN(weight) || expiry.length < 10) return alert("資訊不完整");
+        const check = isValidDateCheck(expiry);
+        if (expiry !== "" && !check.valid) {
+            return alert("⚠️ 效期錯誤：[" + expiry + "] 是一個不存在的日期，請修正後再存檔。");
+        }
         const weightKg = (document.getElementById('unit').value === 'lb') ? (weight * 0.453592).toFixed(2) : weight;
         db.push({ id: Date.now(), brand, flavor: document.getElementById('flavor').value.trim(), weightKg: parseFloat(weightKg), price: document.getElementById('price').value||0, mfgDate: document.getElementById('mfgDate').value, expiry, status: '庫存', memo: "" });
         saveAndRender();
@@ -873,7 +918,10 @@ function runAI() {
     if (weightDisplay) {
         weightDisplay.innerText = totalKg.toFixed(2) + " kg";
     }
-
+    const targetDate = new Date(item.expiry.replace(/\//g, '-'));
+    if (isNaN(targetDate.getTime())) {
+        return { item, pressure: 0, daysLeft: 999 }; // 給予預設值，不參與緊急排序
+    }
     // 4. 計算預計吃完的天數
     const totalDays = Math.round((totalKg * 1000) / dailyG) || 0;
     document.getElementById('ai-total-kg').innerText = totalKg.toFixed(2) + " kg";
